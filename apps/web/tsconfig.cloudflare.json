@@ -6,7 +6,8 @@
     "app/**/.server/**/*",
     "app/**/.client/**/*",
     "workers/**/*",
-    "worker-configuration.d.ts"
+    "worker-configuration.d.ts",
+    "vite-env.d.ts"
   ],
   "compilerOptions": {
     "composite": true,
@@ -19,10 +20,10 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "rootDirs": [".", "./.react-router/types"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "paths": {
       "~/*": ["./app/*"]
-    },
-    "esModuleInterop": true,
-    "resolveJsonModule": true
+    }
   }
 }

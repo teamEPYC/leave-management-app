@@ -1,0 +1,12 @@
+{
+  "name": "partnership-navigators",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo dev --ui tui"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "packageManager": "pnpm@9.1.1"
+}

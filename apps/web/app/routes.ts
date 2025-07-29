@@ -10,5 +10,8 @@ export default [
   route("/", "layouts/auth.tsx", [index("routes/login.tsx")]),
 
   // main app route
-  layout("layouts/main.tsx", [route("/dashboard", "routes/dashboard.tsx")]),
+  layout("layouts/main.tsx", [
+    route("/dashboard", "routes/dashboard.tsx"),
+    route("/apply-leave", "routes/apply-leave.tsx"),
+  ]),
 ] satisfies RouteConfig;

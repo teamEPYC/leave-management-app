@@ -9,6 +9,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../components/ui/breadcrumb";
+import { Outlet } from "react-router";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -32,7 +33,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex-1 p-6">{children}</div>
+        <div className="">
+          <Outlet />
+        </div>
       </main>
     </SidebarProvider>
   );

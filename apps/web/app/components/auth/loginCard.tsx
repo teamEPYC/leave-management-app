@@ -13,7 +13,7 @@ const googleAuthUrl = "/dashboard"; // Replace with your actual Google OAuth end
 
 export default function LoginCard() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <Card className="w-full max-w-md border border-border shadow-md rounded-2xl bg-background">
         <CalendarCheckIcon size={80} className="mx-auto" />
         <CardHeader className="space-y-1 text-center">

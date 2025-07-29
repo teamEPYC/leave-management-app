@@ -25,7 +25,8 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "../ui/sidebar";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { Outlet } from "react-router";
 
 // Menu items configuration
 const items = [
@@ -36,7 +37,7 @@ const items = [
   },
   {
     title: "Apply for Leave",
-    // url: "/apply-leave",
+    url: "/apply-leave",
     icon: PlusCircle,
   },
   {
@@ -97,10 +98,10 @@ export function AppSidebar() {
                     isActive={location.pathname === item.url}
                     className="h-10 px-3 font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
                   >
-                    <a href={item.url} className="flex items-center gap-3">
+                    <Link to={item.url} className="flex items-center gap-3">
                       <item.icon size={18} />
                       <span className="text-sm">{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

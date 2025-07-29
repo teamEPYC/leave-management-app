@@ -25,7 +25,7 @@ export default function LoginCard() {
       <div className="w-full p-8 space-y-6">
         {/* Icon */}
         <div className="flex justify-center mb-6">
-          <CalendarCheckIcon size={80} className="drop-shadow-lg" />
+          <CalendarCheckIcon size={80} className="text-white drop-shadow-lg" />
         </div>
 
         {/* Header */}

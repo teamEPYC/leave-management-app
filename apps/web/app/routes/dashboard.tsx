@@ -1,3 +1,4 @@
+import { ProgressIndicator } from "~/components/shared/progress-indicator";
 import {
   Card,
   CardContent,
@@ -5,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { CalendarDays, Clock, TrendingUp, Users } from "lucide-react";
+import { CalendarDays, Clock, Hospital, TrendingUp, Users } from "lucide-react";
 
 export default function Dashboard() {
   console.log("Dashboard component");
@@ -19,7 +20,22 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <ProgressIndicator
+          Icon={CalendarDays}
+          heading="Annual Leave Balance"
+          value={14}
+          total={20}
+          bottomText="Used: 6 of 20 days"
+        />
+        <ProgressIndicator
+          Icon={Hospital}
+          heading="Sick Leave Balance"
+          value={8}
+          total={20}
+          bottomText="Used: 6 of 20 days"
+        />
+
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Available Leave Days
@@ -30,32 +46,14 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">23</div>
             <p className="text-xs text-muted-foreground">+2 from last month</p>
           </CardContent>
-        </Card>
+        </Card> */}
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Pending Requests
-            </CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">Awaiting approval</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Days Used</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">7</div>
-            <p className="text-xs text-muted-foreground">This year so far</p>
-          </CardContent>
-        </Card>
-
+        <ProgressIndicator
+          heading="Pending Requests"
+          value={1}
+          total={2}
+          bottomText="Used: 6 of 20 days"
+        />
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Team Status</CardTitle>

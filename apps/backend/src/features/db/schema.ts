@@ -1,8 +1,8 @@
-import { pgTable, text, uuid, timestamp, integer, boolean, uniqueIndex, index, primaryKey, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, boolean, json, uniqueIndex, pgEnum } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
-// ─────────────────────────────────────────────
-// Shared Base Fields
+// ─────────────────────────────────────────────────────────────
+// Shared fields
 
 export const CommonRows = {
   isActive: boolean().notNull().default(true),
@@ -10,128 +10,57 @@ export const CommonRows = {
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 };
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // Enums
 
-export const userRoleEnum = pgEnum("user_role", ["admin", "manager", "employee"]);
-export const leaveStatusEnum = pgEnum("leave_status", ["pending", "approved", "rejected", "cancelled"]);
-export const leaveCategoryEnum = pgEnum("leave_category", ["full_day", "half_day"]);
-export const allHandsStatusEnum = pgEnum("allhands_status", ["active", "expired", "disabled"]);
-export const notificationTypeEnum = pgEnum("notification_type", [
-  "leave_applied", "approved", "rejected", "cancelled", "calendar_push", "calendar_remove"
-]);
+export const invitationStatusEnum = pgEnum("invitation_status", ["SENT", "ACCEPT"]);
 
-// ─────────────────────────────────────────────
-// Users
+// ─────────────────────────────────────────────────────────────
+// Organizations
 
-export const Users = pgTable("users", {
+export const Organizations = pgTable("organizations", {
   id: uuid().primaryKey().defaultRandom(),
   name: text().notNull(),
-  email: text().notNull(),
-  phone: text(),
-  role: userRoleEnum("role").notNull(),
-  groupId: uuid("group_id").references(() => Groups.id),
-  ...CommonRows,
-}, (t) => [
-  uniqueIndex("user_email_key").on(t.email),
-]);
-
-// ─────────────────────────────────────────────
-// Leave Types
-
-export const LeaveTypes = pgTable("leave_types", {
-  id: uuid().primaryKey().defaultRandom(),
-  name: text().notNull(),
-  shortCode: text().notNull(),
   description: text(),
   icon: text(),
-  isLimited: boolean().notNull().default(true),
-  value: integer(),
+  domain: text().notNull(),
+  setting: json("setting").notNull().default({}),
+  createdBy: uuid("created_by").notNull().references(() => UserTable.id),
   ...CommonRows,
 });
 
-// ─────────────────────────────────────────────
-// Leave Requests
+// ─────────────────────────────────────────────────────────────
+// Roles
 
-export const LeaveRequests = pgTable("leave_requests", {
+export const Roles = pgTable("roles", {
   id: uuid().primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => Users.id),
-  leaveTypeId: uuid("leave_type_id").notNull().references(() => LeaveTypes.id),
-  fromDate: timestamp("from_date", { withTimezone: true }).notNull(),
-  toDate: timestamp("to_date", { withTimezone: true }).notNull(),
-  category: leaveCategoryEnum("category").notNull(),
-  notes: text(),
-  status: leaveStatusEnum("status").notNull().default("pending"),
-  reviewerId: uuid("reviewer_id").references(() => Users.id),
-  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  name: text().notNull(), // 'OWNER', 'ADMIN', 'EMPLOYEE'
   ...CommonRows,
 });
 
-// ─────────────────────────────────────────────
-// Groups
+// ─────────────────────────────────────────────────────────────
+// Users
 
-export const Groups = pgTable("groups", {
+export const UserTable = pgTable("users", {
   id: uuid().primaryKey().defaultRandom(),
   name: text().notNull(),
+  image: text(),
+  email: text().notNull(),
+  phone: text(),
+  roleId: uuid("role_id").notNull().references(() => Roles.id),
+  organizationId: uuid("organization_id").notNull().references(() => Organizations.id),
   ...CommonRows,
-});
+}, (t) => [
+  uniqueIndex("user_email_key").on(t.email).where(sql`${t.isActive}`),
+]);
 
-// ─────────────────────────────────────────────
-// Approval Managers
+// ─────────────────────────────────────────────────────────────
+// Invitations
 
-export const ApprovalManagers = pgTable("approval_managers", {
+export const Invitations = pgTable("invitations", {
   id: uuid().primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => Users.id),
-  groupId: uuid("group_id").notNull().references(() => Groups.id),
-  ...CommonRows,
-});
-
-// ─────────────────────────────────────────────
-// Calendar Settings
-
-export const CalendarSettings = pgTable("calendar_settings", {
-  id: uuid().primaryKey().defaultRandom(),
-  adminUserId: uuid("admin_user_id").notNull().references(() => Users.id),
-  clientId: text().notNull(),
-  clientSecret: text().notNull(),
-  isActive: boolean().notNull().default(true),
-  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-});
-
-// ─────────────────────────────────────────────
-// All Hands Periods
-
-export const AllHands = pgTable("all_hands", {
-  id: uuid().primaryKey().defaultRandom(),
-  groupId: uuid("group_id").notNull().references(() => Groups.id),
-  startDate: timestamp("start_date", { withTimezone: true }).notNull(),
-  endDate: timestamp("end_date", { withTimezone: true }).notNull(),
-  reason: text(),
-  status: allHandsStatusEnum("status").notNull().default("active"),
-  ...CommonRows,
-});
-
-
-// Notifications
-
-export const Notifications = pgTable("notifications", {
-  id: uuid().primaryKey().defaultRandom(),
-  type: notificationTypeEnum("type").notNull(),
-  userId: uuid("user_id").notNull().references(() => Users.id),
-  leaveId: uuid("leave_id").references(() => LeaveRequests.id),
-  message: text().notNull(),
-  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-});
-
-// ─────────────────────────────────────────────
-// Leave Balances
-
-export const LeaveBalances = pgTable("leave_balances", {
-  id: uuid().primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => Users.id),
-  leaveTypeId: uuid("leave_type_id").notNull().references(() => LeaveTypes.id),
-  year: integer().notNull(), // e.g. 2025
-  used: integer().notNull().default(0),
-  balance: integer().notNull().default(0),
+  organizationId: uuid("organization_id").notNull().references(() => Organizations.id),
+  email: text().notNull(),
+  status: invitationStatusEnum("status").notNull().default("SENT"),
   ...CommonRows,
 });

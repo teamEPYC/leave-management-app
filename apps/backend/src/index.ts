@@ -2,6 +2,7 @@ import { Scalar } from "@scalar/hono-api-reference";
 import { getHono } from "./utils/hono";
 import { authEndpoint } from "./endpoints/auth";
 import { connectDb } from "./features/db/connect";
+import { organizationEndpoint } from "./endpoints/organization";
 
 const app = getHono();
 
@@ -28,6 +29,7 @@ app.use("*", async (c, next) => {
 
 // ✅ Register auth endpoint correctly
 app.route("/api/v1/auth", authEndpoint);
+app.route("/api/v1/organization", organizationEndpoint);
 
 app.get("/api", Scalar({ url: "/doc", theme: "elysiajs", layout: "classic" }));
 

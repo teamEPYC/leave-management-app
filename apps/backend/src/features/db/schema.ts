@@ -16,10 +16,44 @@ export const CommonRows = {
 export const invitationStatusEnum = pgEnum("invitation_status", ["SENT", "ACCEPT"]);
 
 // ─────────────────────────────────────────────────────────────
+// Users
+
+export const UserTable = pgTable("users", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text().notNull(),
+  image: text(),
+  email: text().notNull(),
+  phone: text(),
+  roleId: uuid("role_id").notNull().references(() => RoleTable.id),
+  organizationId: uuid("organization_id").references(() => OrganizationTable.id),
+  ...CommonRows,
+}, (t) => [
+  uniqueIndex("user_email_key").on(t.email).where(sql`${t.isActive}`),
+]);
+
+
+// ─────────────────────────────────────────────────────────────
+// Roles
+
+export const RoleTable = pgTable("roles", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text().notNull(), // 'OWNER', 'ADMIN', 'EMPLOYEE'
+  ...CommonRows,
+});
+
+
+
+// ─────────────────────────────────────────────────────────────
 // Organizations
 
-export const Organizations = pgTable("organizations", {
-  id: uuid().primaryKey().defaultRandom(),
+export const OrganizationTable = pgTable("organizations", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   name: text().notNull(),
   description: text(),
   icon: text(),
@@ -30,37 +64,29 @@ export const Organizations = pgTable("organizations", {
 });
 
 // ─────────────────────────────────────────────────────────────
-// Roles
+// Invitations
 
-export const Roles = pgTable("roles", {
-  id: uuid().primaryKey().defaultRandom(),
-  name: text().notNull(), // 'OWNER', 'ADMIN', 'EMPLOYEE'
+export const InvitationTable = pgTable("invitations", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: uuid("organization_id").notNull().references(() => OrganizationTable.id),
+  email: text().notNull(),
+  status: invitationStatusEnum("status").notNull().default("SENT"),
   ...CommonRows,
 });
 
-// ─────────────────────────────────────────────────────────────
-// Users
-
-export const UserTable = pgTable("users", {
-  id: uuid().primaryKey().defaultRandom(),
-  name: text().notNull(),
-  image: text(),
-  email: text().notNull(),
-  phone: text(),
-  roleId: uuid("role_id").notNull().references(() => Roles.id),
-  organizationId: uuid("organization_id").references(() => Organizations.id),
-  ...CommonRows,
-}, (t) => [
-  uniqueIndex("user_email_key").on(t.email).where(sql`${t.isActive}`),
-]);
 
 // ─────────────────────────────────────────────────────────────
-// Invitations
+// UserOrganizationTable 
 
-export const Invitations = pgTable("invitations", {
-  id: uuid().primaryKey().defaultRandom(),
-  organizationId: uuid("organization_id").notNull().references(() => Organizations.id),
-  email: text().notNull(),
-  status: invitationStatusEnum("status").notNull().default("SENT"),
+export const UserOrganizationTable = pgTable("user_organization", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: uuid("organization_id").notNull().references(() => OrganizationTable.id),
+  userId: uuid("user_id").notNull().references(() => UserTable.id),
+  roleId: uuid("role_id").notNull().references(() => RoleTable.id),
+  isOwner: boolean('is_owner').notNull().default(false),
   ...CommonRows,
 });

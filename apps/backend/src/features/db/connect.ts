@@ -5,7 +5,7 @@ import postgres from "postgres";
 
 export function connectDb({ env }: WithEnv<{}>) {
   try {
-    console.log("Connecting to database with URL:", env.DATABASE_URL?.substring(0, 50) + "...");  
+    console.log("Connecting to database with URL:", env.DB.connectionString?.substring(0, 50) + "...");  
     const client = drizzle(env.DB.connectionString, {casing: "snake_case"})
     console.log("Database connection successful");
     return client;

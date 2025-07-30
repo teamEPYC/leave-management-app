@@ -253,9 +253,18 @@ body {
 }
 
 @layer base {
+  
+  a,
+  button,
+  [role="button"],
+  .hoverable {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);

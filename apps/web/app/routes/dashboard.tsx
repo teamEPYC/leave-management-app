@@ -6,7 +6,16 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { CalendarDays, Clock, Hospital, TrendingUp, Users } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  ExternalLink,
+  Hospital,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import { Button } from "~/components/ui/button";
+import { Link } from "react-router";
 
 export default function Dashboard() {
   console.log("Dashboard component");
@@ -54,7 +63,7 @@ export default function Dashboard() {
           total={2}
           bottomText={`Used: ${1} of ${2} days`}
         />
-        <Card>
+        <Card className="rounded-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Team Status</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -70,7 +79,7 @@ export default function Dashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-12">
         <Card className="col-span-6">
-          <CardHeader className="border-b-1">
+          <CardHeader className="border-b-1 w-full">
             <CardTitle>Recent Leave Requests</CardTitle>
             <CardDescription className="mb-2">
               Your latest leave applications and their status.

@@ -1,4 +1,5 @@
 import { connectDb } from "../features/db/connect";
+import type { Env } from "./env";
 
 export type WithEnv<T> = T & { env: Env };
 

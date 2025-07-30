@@ -64,7 +64,11 @@ export async function getUserByEmail({
   db,
 }: WithDb<{ email: string; selectInfo?: typeof UserSelectInfo }>) {
   const user = await db
-    .select(UserSelectInfo.withPassword)
+    .select({
+      id: UserTable.id,
+      email: UserTable.email,
+      name: UserTable.name,
+    })
     .from(UserTable)
     .where(eq(UserTable.email, email));
 
@@ -80,7 +84,11 @@ export async function getUserById({
   db,
 }: WithDb<{ id: string; selectInfo?: typeof UserSelectInfo }>) {
   const user = await db
-    .select(UserSelectInfo.info)
+    .select({
+      id: UserTable.id,
+      email: UserTable.email,
+      name: UserTable.name,
+    })
     .from(UserTable)
     .where(eq(UserTable.id, id));
 

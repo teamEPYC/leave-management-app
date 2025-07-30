@@ -29,6 +29,13 @@
       "when": 1753857442860,
       "tag": "0003_opposite_serpent_society",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1753875346843,
+      "tag": "0004_bright_trauma",
+      "breakpoints": true
     }
   ]
 }

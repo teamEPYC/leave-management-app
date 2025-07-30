@@ -1,6 +1,7 @@
 import { Hono } from "hono";
-import { Roles, UserTable } from "../../features/db/schema";
+import { RoleTable, UserTable } from "../../features/db/schema";
 import { eq } from "drizzle-orm";
+import { createApiKey } from "../../features/auth/auth";
 
 type Variables = {
   env: Env;
@@ -88,9 +89,9 @@ googleAuthRoutes.get("/callback", async (c) => {
     if (existingUser.length === 0) {
       // 4. Get EMPLOYEE role
       const employeeRole = await db
-        .select({ id: Roles.id })
-        .from(Roles)
-        .where(eq(Roles.name, "EMPLOYEE"))
+        .select({ id: RoleTable.id })
+        .from(RoleTable)
+        .where(eq(RoleTable.name, "EMPLOYEE"))
         .limit(1);
 
       if (employeeRole.length === 0) {
@@ -114,7 +115,8 @@ googleAuthRoutes.get("/callback", async (c) => {
     }
 
     // 6. Generate dummy API key (replace later with real token/session logic)
-    const apiKey = `epyc_${crypto.randomUUID().replace(/-/g, "")}`;
+    // const apiKey = `epyc_${crypto.randomUUID().replace(/-/g, "")}`;
+    const apiKey = await createApiKey({ env, userId: user.id });
 
     return c.json({
       ok: true,
@@ -128,7 +130,7 @@ googleAuthRoutes.get("/callback", async (c) => {
           image: user.image,
         },
         token: {
-          access_token: token.access_token,
+          // access_token: token.access_token,
           expires_in: token.expires_in,
         },
       },

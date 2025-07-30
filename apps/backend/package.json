@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev --env dev",
+    "dev": "dotenv -e .env -- wrangler dev --env dev",
     "cf-typegen": "wrangler types --env dev",
     "db:generate": "dotenv -e .env -- drizzle-kit generate",
     "db:deploy": "dotenv -e .env -- drizzle-kit migrate",

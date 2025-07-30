@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import type { Env } from "../../utils/env";
 
 type Variables = {
   env: Env;

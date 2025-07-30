@@ -52,7 +52,7 @@ export default function Dashboard() {
           heading="Pending Requests"
           value={1}
           total={2}
-          bottomText="Used: 6 of 20 days"
+          bottomText={`Used: ${1} of ${2} days`}
         />
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -68,11 +68,11 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-12">
+        <Card className="col-span-6">
+          <CardHeader className="border-b-1">
             <CardTitle>Recent Leave Requests</CardTitle>
-            <CardDescription>
+            <CardDescription className="mb-2">
               Your latest leave applications and their status.
             </CardDescription>
           </CardHeader>
@@ -82,7 +82,7 @@ export default function Dashboard() {
                 <div>
                   <p className="font-medium">Annual Leave</p>
                   <p className="text-sm text-muted-foreground">
-                    Dec 20-25, 2024
+                    Dec 20 to Dec 25, 2025
                   </p>
                 </div>
                 <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
@@ -92,7 +92,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Sick Leave</p>
-                  <p className="text-sm text-muted-foreground">Nov 15, 2024</p>
+                  <p className="text-sm text-muted-foreground">Nov 15, 2025</p>
                 </div>
                 <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
                   Pending
@@ -102,13 +102,14 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-3">
-          <CardHeader>
+        <Card className="col-span-6">
+          <CardHeader className="border-b-1">
             <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
+            <CardDescription className="mb-2">
               Common tasks you might want to perform.
             </CardDescription>
           </CardHeader>
+          {/* Will be mapped with data from backend */}
           <CardContent className="space-y-3">
             <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
               <p className="font-medium">Apply for Leave</p>

@@ -17,9 +17,20 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { CalendarIcon } from "lucide-react";
+import React from "react";
+import { DatePicker } from "~/components/shared/date-picker";
 
 export default function ApplyLeave() {
+  const [durationType, setDurationType] = React.useState<
+    "full" | "half" | "multiple"
+  >("full");
+  const [selectedDate, setSelectedDate] = React.useState<
+    Date | { from: Date; to?: Date } | undefined
+  >(undefined);
+  const [leaveType, setLeaveType] = React.useState("full");
+
   return (
+    // will need to add employee name if admin or manager is making for someone else
     <div className="mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Apply for Leave</h1>
@@ -28,7 +39,7 @@ export default function ApplyLeave() {
         </p>
       </div>
 
-      <Card className="max-w-2xl">
+      <Card className="">
         <CardHeader>
           <CardTitle>Leave Application Form</CardTitle>
           <CardDescription>
@@ -55,7 +66,12 @@ export default function ApplyLeave() {
 
             <div className="space-y-2">
               <Label htmlFor="duration">Duration</Label>
-              <Select>
+              <Select
+                value={durationType}
+                onValueChange={(value) =>
+                  setDurationType(value as "full" | "half" | "multiple")
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
@@ -72,14 +88,16 @@ export default function ApplyLeave() {
             <div className="space-y-2">
               <Label htmlFor="start-date">Start Date *</Label>
               <div className="relative">
-                <Input type="date" id="start-date" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="end-date">End Date *</Label>
-              <div className="relative">
-                <Input type="date" id="end-date" />
+                {/* <FlexibleDatePicker /> */}
+                <DatePicker
+                  durationType={durationType}
+                  value={selectedDate}
+                  onChange={(value) => {
+                    setSelectedDate(
+                      value as Date | { from: Date; to?: Date } | undefined
+                    );
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -102,8 +120,8 @@ export default function ApplyLeave() {
             />
           </div>
 
-          <div className="flex gap-4 pt-4">
-            <Button type="submit" className="flex-1">
+          <div className="flex justify-end gap-4 pt-4">
+            <Button type="submit" className="flex-1 max-w-sm">
               Submit Leave Request
             </Button>
             <Button type="button" variant="outline">

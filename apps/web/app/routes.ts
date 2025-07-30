@@ -13,5 +13,6 @@ export default [
   layout("layouts/main.tsx", [
     route("/dashboard", "routes/dashboard.tsx"),
     route("/apply-leave", "routes/apply-leave.tsx"),
+    route("/my-leaves", "routes/my-leaves.tsx"),
   ]),
 ] satisfies RouteConfig;

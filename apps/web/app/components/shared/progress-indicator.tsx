@@ -23,7 +23,7 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
     total > 0 ? Math.min(100, Math.max(0, (value / total) * 100)) : 0;
 
   return (
-    <div className={cn("space-y-2 p-4 border-2 rounded-lg", className)}>
+    <div className={cn("space-y-2 p-4 border-1 rounded-lg", className)}>
       <div className="flex flex-row gap-3">
         <h3 className="text-lg font-semibold text-foreground">{heading}</h3>
         {Icon && <Icon className={cn("w-6 h-6")} />}

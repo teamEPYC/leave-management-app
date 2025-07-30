@@ -48,7 +48,7 @@ export const UserTable = pgTable("users", {
   email: text().notNull(),
   phone: text(),
   roleId: uuid("role_id").notNull().references(() => Roles.id),
-  organizationId: uuid("organization_id").notNull().references(() => Organizations.id),
+  organizationId: uuid("organization_id").references(() => Organizations.id),
   ...CommonRows,
 }, (t) => [
   uniqueIndex("user_email_key").on(t.email).where(sql`${t.isActive}`),

@@ -19,6 +19,7 @@ const UserSelectInfo = {
     passwordHash: UserTable.passwordHash,
   },
 };
+
 export async function createUser({
   company,
   email,

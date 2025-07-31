@@ -8,14 +8,41 @@ import {
 } from "../components/ui/card";
 import {
   CalendarDays,
-  Clock,
+  Clock10,
   ExternalLink,
   Hospital,
-  TrendingUp,
   Users,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Link } from "react-router";
+import { RecentLeaveRequest } from "~/components/dashboard/recentLeaves/recent-leave-request";
+import { index } from "@react-router/dev/routes";
+
+const leaves = [
+  {
+    leaveType: "Sick Leave",
+    fromdate: "July 28, 2025",
+    toDate: "July 30, 2025",
+    status: "pending",
+  },
+  {
+    leaveType: "Sick Leave",
+    fromdate: "July 28, 2025",
+    toDate: "July 30, 2025",
+    status: "pending",
+  },
+  {
+    leaveType: "Annual Leave",
+    fromdate: "August 15, 2025",
+    status: "approved",
+  },
+  {
+    leaveType: "Emergency Leave",
+    fromdate: "July 20, 2025",
+    toDate: "July 21, 2025",
+    status: "rejected",
+  },
+];
 
 export default function Dashboard() {
   console.log("Dashboard component");
@@ -43,21 +70,8 @@ export default function Dashboard() {
           total={20}
           bottomText="Used: 6 of 20 days"
         />
-
-        {/* <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Available Leave Days
-            </CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">+2 from last month</p>
-          </CardContent>
-        </Card> */}
-
         <ProgressIndicator
+          Icon={Clock10}
           heading="Pending Requests"
           value={1}
           total={2}
@@ -85,30 +99,15 @@ export default function Dashboard() {
               Your latest leave applications and their status.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Annual Leave</p>
-                  <p className="text-sm text-muted-foreground">
-                    Dec 20 to Dec 25, 2025
-                  </p>
-                </div>
-                <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                  Approved
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Sick Leave</p>
-                  <p className="text-sm text-muted-foreground">Nov 15, 2025</p>
-                </div>
-                <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
-                  Pending
-                </span>
-              </div>
-            </div>
-          </CardContent>
+          {leaves.slice(0, 5).map((leave, index) => (
+            <RecentLeaveRequest
+              key={index}
+              leaveType={leave.leaveType}
+              fromdate={leave.fromdate}
+              toDate={leave.toDate}
+              status={leave.status}
+            />
+          ))}
         </Card>
 
         <Card className="col-span-6">

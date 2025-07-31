@@ -9,6 +9,8 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Eye, Edit, Trash2 } from "lucide-react";
 import { StatusBadge } from "~/components/shared/status-badge";
+import { Link } from "react-router";
+import { LeaveHistoryItem } from "~/components/myLeaves/LeaveHistoryItem";
 
 // mock
 const leaves = [
@@ -44,20 +46,20 @@ const leaves = [
   },
 ];
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "approved":
-      return <StatusBadge status="Approved" />;
-    case "pending":
-      return <StatusBadge status="Pending" />;
-    case "rejected":
-      return <StatusBadge status="Rejected" />;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
-  }
-};
-
 export default function MyLeaves() {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved":
+        return <StatusBadge status="Approved" />;
+      case "pending":
+        return <StatusBadge status="Pending" />;
+      case "rejected":
+        return <StatusBadge status="Rejected" />;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -66,54 +68,16 @@ export default function MyLeaves() {
           <p className="text-muted-foreground">
             View and manage all your leave applications.
           </p>
-        </div>
-        <Button>Apply for New Leave</Button>
+        </div>{" "}
+        <Link to={"/apply-leave"}>
+          <Button>Apply for New Leave</Button>
+        </Link>
       </div>
 
       <div className="grid gap-4">
+        {/* reusable comp */}
         {leaves.map((leave) => (
-          <Card key={leave.id}>
-            <CardContent className="">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-4">
-                    <h3 className="text-lg font-semibold">{leave.type}</h3>
-                    {getStatusBadge(leave.status)}
-                  </div>
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <span>
-                      From: {new Date(leave.startDate).toLocaleDateString()}
-                    </span>
-                    <span>
-                      To: {new Date(leave.endDate).toLocaleDateString()}
-                    </span>
-                    <span>
-                      {leave.days} day{leave.days > 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <p className="text-sm">{leave.reason}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Applied on: {new Date(leave.appliedOn).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  {leave.status === "pending" && (
-                    <>
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <LeaveHistoryItem key={leave.id} leave={leave} />
         ))}
       </div>
     </div>

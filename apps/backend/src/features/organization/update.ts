@@ -42,7 +42,7 @@ export async function updateOrganization({
     }
 
     const user = userResult.user;
-    
+
 
     const { isOwner, isAdmin, hasAccess } = await getUserRole({
         db,
@@ -78,6 +78,70 @@ export async function updateOrganization({
         ok: true,
         data: {
             organizationId: updated.id,
+        },
+    } as const;
+}
+
+
+
+
+export async function deactivateOrganization({
+    db,
+    env,
+    apiKey,
+    organizationId,
+}: WithDbAndEnv<{ apiKey: string; organizationId: string }>) {
+    const userRes = await getUserFromApiKey({ apiKey, db, env });
+
+    if (!userRes.ok) {
+        return {
+            ok: false,
+            errorCode: userRes.errorCode,
+            error: userRes.error,
+            httpStatus: 401,
+        } as const;
+    }
+
+    const user = userRes.user;
+
+    const { isOwner } = await getUserRole({
+        db,
+        userId: user.id,
+        organizationId,
+    });
+
+    if (!isOwner) {
+        return {
+            ok: false,
+            errorCode: "UNAUTHORIZED_USER",
+            error: "Only OWNER can deactivate the organization",
+            httpStatus: 403,
+        } as const;
+    }
+
+    const [updated] = await db
+        .update(OrganizationTable)
+        .set({
+            isActive: false,
+            updatedAt: new Date(),
+        })
+        .where(eq(OrganizationTable.id, organizationId))
+        .returning();
+
+    await db
+        .update(UserOrganizationTable)
+        .set({
+            isActive: false,
+            updatedAt: new Date(),
+        })
+        .where(eq(UserOrganizationTable.organizationId, organizationId));
+
+
+    return {
+        ok: true,
+        data: {
+            organizationId: updated.id,
+            deactivatedAt: updated.updatedAt.toISOString(),
         },
     } as const;
 }

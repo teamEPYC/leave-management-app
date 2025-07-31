@@ -8,6 +8,7 @@ import {
 import { ErrorCodes } from "../../utils/error";
 import { WithDbAndEnv } from "../../utils/commonTypes";
 import { getUserFromApiKey } from "../auth/auth";
+import { getUserRole } from "../user";
 
 type Input = {
     apiKey: string;
@@ -41,31 +42,18 @@ export async function updateOrganization({
     }
 
     const user = userResult.user;
+    
 
-    // 2. Get roleId(s) for OWNER + ADMIN
-    const roleRes = await db
-        .select()
-        .from(RoleTable)
-        .where(inArray(RoleTable.name, ["OWNER", "ADMIN"]));
+    const { isOwner, isAdmin, hasAccess } = await getUserRole({
+        db,
+        userId: user.id,
+        organizationId,
+    });
 
-    const allowedRoleIds = roleRes.map((r) => r.id);
-
-    // 3. Check if user is OWNER or ADMIN of this org
-    const membership = await db
-        .select()
-        .from(UserOrganizationTable)
-        .where(
-            and(
-                eq(UserOrganizationTable.userId, user.id),
-                eq(UserOrganizationTable.organizationId, organizationId),
-                inArray(UserOrganizationTable.roleId, allowedRoleIds)
-            )
-        );
-
-    if (membership.length === 0) {
+    if (!hasAccess || (!isOwner && !isAdmin)) {
         return {
             ok: false,
-            errorCode: ErrorCodes.UNAUTHORIZED,
+            errorCode: ErrorCodes.UNAUTHORIZED_USER,
             error: "You are not authorized to update this organization",
             status: 403,
         } as const;

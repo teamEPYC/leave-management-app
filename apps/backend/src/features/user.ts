@@ -1,8 +1,15 @@
 import bcrypt from "bcryptjs";
 import { WithDb } from "../utils/commonTypes";
-import { UserTable } from "./db/schema";
-import { eq } from "drizzle-orm";
+import { RoleTable, UserOrganizationTable, UserTable } from "./db/schema";
+import { and, eq } from "drizzle-orm";
 import { ErrorCodes } from "../utils/error";
+
+
+type OrgRoleCheckArgs = {
+  db: ReturnType<typeof import("./db/connect").connectDb>;
+  userId: string;
+  organizationId: string;
+};
 
 const UserSelectInfo = {
   basic: {
@@ -12,16 +19,13 @@ const UserSelectInfo = {
     id: UserTable.id,
     email: UserTable.email,
     name: UserTable.name,
-    company: UserTable.company,
   },
   withPassword: {
     id: UserTable.id,
-    passwordHash: UserTable.passwordHash,
   },
 };
 
 export async function createUser({
-  company,
   email,
   name,
   plainTextPassword,
@@ -37,10 +41,10 @@ export async function createUser({
   const user = await db
     .insert(UserTable)
     .values({
-      company,
       email,
       name,
-      passwordHash: hashedPassword,
+      roleId: null,
+      organizationId: null,
     })
     .onConflictDoNothing({
       target: [UserTable.email],
@@ -97,4 +101,63 @@ export async function getUserById({
   }
 
   return user[0];
+}
+
+
+
+export async function getUserRole({
+  db,
+  userId,
+  organizationId,
+}: OrgRoleCheckArgs): Promise<{
+  isOwner: boolean;
+  isAdmin: boolean;
+  isEmployee: boolean;
+  hasAccess: boolean;
+}> {
+  // Get user’s role in the org
+  const membership = await db
+    .select({
+      roleName: RoleTable.name,
+    })
+    .from(UserOrganizationTable)
+    .innerJoin(RoleTable, eq(UserOrganizationTable.roleId, RoleTable.id))
+    .where(
+      and(
+        eq(UserOrganizationTable.userId, userId),
+        eq(UserOrganizationTable.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  const role = membership[0]?.roleName;
+
+  const isOwner = role === "OWNER";
+  const isAdmin = role === "ADMIN";
+  const isEmployee = role === "EMPLOYEE";
+
+  return {
+    isOwner,
+    isAdmin,
+    isEmployee,
+    hasAccess: !!role,
+  };
+}
+
+
+export async function getRoleIdByName({
+  db,
+  roleName,
+}: WithDb<{ roleName: "OWNER" | "ADMIN" | "EMPLOYEE" }>) {
+  const res = await db
+    .select({ id: RoleTable.id })
+    .from(RoleTable)
+    .where(eq(RoleTable.name, roleName))
+    .limit(1);
+
+  if (res.length === 0) {
+    throw new Error(`Role '${roleName}' not found`);
+  }
+
+  return res[0].id;
 }

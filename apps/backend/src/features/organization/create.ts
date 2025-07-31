@@ -1,13 +1,11 @@
 import { eq } from "drizzle-orm";
 import {
     OrganizationTable,
-    RoleTable,
     UserOrganizationTable,
-    UserTable,
 } from "../db/schema";
 import { WithDbAndEnv } from "../../utils/commonTypes";
-import { ErrorCodes } from "../../utils/error";
 import { getUserFromApiKey } from "../auth/auth";
+import { getRoleIdByName } from "../user";
 
 type Input = {
     apiKey: string;
@@ -38,24 +36,11 @@ export async function createOrganizationAsOwner({
 
     const user = userResult.user;
 
-
-
     // 2. Get OWNER role
-    const roleRes = await db
-        .select({ id: RoleTable.id })
-        .from(RoleTable)
-        .where(eq(RoleTable.name, "OWNER"))
-        .limit(1);
-
-    if (roleRes.length === 0) {
-        return {
-            ok: false,
-            error: "OWNER role not found",
-            status: 500,
-        } as const;
-    }
-
-    const ownerRoleId = roleRes[0].id;
+    const ownerRoleId = await getRoleIdByName({
+        db,
+        roleName: "OWNER",
+    });
 
     // 3. Create organization
     const [org] = await db

@@ -42,7 +42,7 @@ const items = [
   },
   {
     title: "My Leaves",
-    // url: "/my-leaves",
+    url: "/my-leaves",
     icon: List,
   },
   {
@@ -87,7 +87,7 @@ export function AppSidebar() {
       <SidebarContent className="px-3 py-4">
         <SidebarGroup>
           <SidebarGroupLabel className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Navigation
+            {/* Navigation */}
           </SidebarGroupLabel>
           <SidebarGroupContent className="gap-1 pt-2">
             <SidebarMenu>

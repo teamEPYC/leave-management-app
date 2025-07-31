@@ -4,6 +4,7 @@ import { ApiKeyHeaderSchema, getAuthOpenApiResponse, jsonContent } from "../util
 import { connectDb } from "../features/db/connect";
 import { createOrganizationAsOwner } from "../features/organization/create";
 import { handleApiErrors } from "../utils/error";
+import { updateOrganization } from "../features/organization/update";
 
 export const organizationEndpoint = getHono();
 
@@ -53,6 +54,60 @@ organizationEndpoint.openapi(
             }
 
             return c.json(result, 200);
+        } catch (err) {
+            return handleApiErrors(c, err);
+        }
+    }
+);
+
+
+organizationEndpoint.openapi(
+    {
+        method: "put",
+        path: "/:id",
+        tags: ["Organization"],
+        request: {
+            headers: ApiKeyHeaderSchema,
+            params: z.object({
+                id: z.string().uuid(),
+            }),
+            body: jsonContent(
+                z.object({
+                    name: z.string().optional(),
+                    description: z.string().optional(),
+                    icon: z.string().optional(),
+                    domain: z.string().nullable().optional(),
+                    setting: z.record(z.any()).nullable().optional(),
+                })
+            ),
+        },
+        responses: {
+            ...getAuthOpenApiResponse(
+                z.object({
+                    ok: z.literal(true),
+                    data: z.object({
+                        organizationId: z.string().uuid(),
+                    }),
+                })
+            ),
+        },
+    },
+    async (c) => {
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const orgId = c.req.valid("param").id;
+            const body = c.req.valid("json");
+
+            const result = await updateOrganization({
+                db,
+                env: c.env,
+                apiKey,
+                organizationId: orgId,
+                input: body,
+            });
+
+            return c.json(result, result.ok ? 200 : result.status ?? 400);
         } catch (err) {
             return handleApiErrors(c, err);
         }

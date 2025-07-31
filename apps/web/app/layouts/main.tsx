@@ -33,7 +33,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="">
+        <div className="p-4">
           <Outlet />
         </div>
       </main>

@@ -11,7 +11,7 @@ export default [
 
   // main app route
   layout("layouts/main.tsx", [
-    route("/dashboard", "routes/dashboard.tsx"),
+    route("/dashboard", "routes/admin/admin-dashboard.tsx"),
     route("/apply-leave", "routes/apply-leave.tsx"),
     route("/my-leaves", "routes/my-leaves.tsx"),
   ]),

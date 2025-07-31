@@ -48,7 +48,7 @@ export const LeaveHistoryItem: React.FC<LeaveHistoryItemProps> = ({
     <Dialog>
       <DialogTrigger asChild>
         {/* the card is now a dialogue trigger */}
-        <Card className="cursor-pointer hover:shadow-md transition">
+        <Card className="cursor-pointer hover:shadow-md transition overflow-auto">
           <CardContent>
             <div className="flex items-center justify-between">
               <div className="space-y-2">
@@ -69,19 +69,22 @@ export const LeaveHistoryItem: React.FC<LeaveHistoryItemProps> = ({
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
+            <div className="flex justify-end gap-2 mt-6 ">
               {leave.status === "pending" && (
                 <>
                   <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4 mr-1" /> Edit
+                    <Edit className="h-4 w-4" />
+                    <div className="hidden lg:block ml-1"> Edit</div>
                   </Button>
                   <Button variant="destructive" size="sm">
-                    <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    <Trash2 className="h-4 w-4" />
+                    <div className="hidden lg:block ml-1"> Delete</div>
                   </Button>
                 </>
               )}
               <Button variant="default" size="sm">
-                <Eye className="h-4 w-4 mr-1" /> View Details
+                <Eye className="h-4 w-4" />
+                <div className="hidden lg:block ml-1"> View</div>
               </Button>
             </div>
           </CardContent>
@@ -89,11 +92,13 @@ export const LeaveHistoryItem: React.FC<LeaveHistoryItemProps> = ({
       </DialogTrigger>
 
       {/* Main Dialogue  */}
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-primary" />
-            {leave.type}
+      <DialogContent className="grid">
+        <DialogHeader className="gap-1">
+          <DialogTitle className="text-2xl flex items-center gap-4">
+            <div className="flex flex-row items-center justify-center gap-1">
+              <CalendarDays className="w-6 h-6 text-primary" />
+              {leave.type}
+            </div>
             {getStatusBadge(leave.status)}
           </DialogTitle>
 

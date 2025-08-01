@@ -7,6 +7,7 @@ import { handleApiErrors } from "../utils/error";
 import { deactivateOrganization, updateOrganization } from "../features/organization/update";
 import { getOrganizationList } from "../features/organization/get";
 import { inviteUserToOrg } from "../features/organization/invite-user";
+import { joinOrganization } from "../features/organization/join";
 
 export const organizationEndpoint = getHono();
 
@@ -250,5 +251,54 @@ organizationEndpoint.openapi(
         } catch (err) {
             return handleApiErrors(c, err);
         }
+    }
+);
+
+
+organizationEndpoint.openapi(
+    {
+        method: "post",
+        path: "/:orgId/join",
+        tags: ["Organization"],
+        request: {
+            headers: ApiKeyHeaderSchema,
+            params: z.object({
+                orgId: z.string().uuid(),
+            }),
+            body: jsonContent(
+                z.object({
+                    invitationId: z.string().uuid().optional(), // Optional: If provided, join via invitation
+                })
+            ),
+        },
+        responses: {
+            ...getAuthOpenApiResponse(
+                z.object({
+                    ok: z.literal(true),
+                    data: z.object({
+                        organizationId: z.string().uuid(),
+                        joinedAt: z.string(),
+                        alreadyMember: z.boolean(),
+                        joinType: z.enum(["domain", "invite"]),
+                    }),
+                })
+            ),
+        },
+    },
+    async (c) => {
+        const db = connectDb({ env: c.env });
+        const apiKey = c.req.valid("header")["x-api-key"];
+        const { orgId } = c.req.valid("param");
+        const { invitationId } = c.req.valid("json");
+
+        const result = await joinOrganization({
+            db,
+            env: c.env,
+            apiKey,
+            organizationId: orgId,
+            invitationId,
+        });
+
+        return c.json(result, result.ok ? 200 : result.status ?? 400);
     }
 );

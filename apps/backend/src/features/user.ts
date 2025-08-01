@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { WithDb } from "../utils/commonTypes";
-import { RoleTable, UserOrganizationTable, UserTable } from "./db/schema";
-import { and, eq } from "drizzle-orm";
+import { InvitationTable, RoleTable, UserOrganizationTable, UserTable } from "./db/schema";
+import { and, eq, gt } from "drizzle-orm";
 import { ErrorCodes } from "../utils/error";
 
 
@@ -160,4 +160,81 @@ export async function getRoleIdByName({
   }
 
   return res[0].id;
+}
+
+
+
+export async function getValidInvitation({
+  db,
+  organizationId,
+  email,
+  invitationId,
+}: {
+  db: ReturnType<typeof import("./db/connect").connectDb>;
+  organizationId: string;
+  email: string;
+  invitationId?: string;
+}) {
+  const conditions = [
+    eq(InvitationTable.organizationId, organizationId),
+    eq(InvitationTable.email, email.toLowerCase()),
+    eq(InvitationTable.status, "SENT"),
+    gt(InvitationTable.expiresAt, new Date()),
+  ];
+
+  if (invitationId) {
+    conditions.push(eq(InvitationTable.id, invitationId));
+  }
+
+  const invites = await db
+    .select()
+    .from(InvitationTable)
+    .where(and(...conditions))
+    .limit(1);
+
+  return invites.length > 0 ? invites[0] : null;
+}
+
+
+export async function addUserToOrganization({
+  db,
+  userId,
+  organizationId,
+  roleId,
+  isOwner = false,
+}: WithDb<{
+  userId: string;
+  organizationId: string;
+  roleId: string;
+  isOwner?: boolean;
+}>) {
+  return db.insert(UserOrganizationTable).values({
+    userId,
+    organizationId,
+    roleId,
+    isOwner,
+  });
+}
+
+
+
+
+// TODO: check user already in organization
+export async function isUserAlreadyInOrganization({
+  db,
+  email,
+  organizationId,
+}: WithDb<{ email: string; organizationId: string }>): Promise<boolean> {
+  // 1. Check if user exists
+  const existingUser = await getUserByEmail({ db, email });
+  if (!existingUser) return false;
+
+  // 2. Check membership
+  const { hasAccess } = await getUserRole({
+    db,
+    userId: existingUser.id,
+    organizationId,
+  });
+
+  return hasAccess;
 }

@@ -1,6 +1,6 @@
 import { InvitationTable } from "../db/schema";
 import { getUserFromApiKey } from "../auth/auth";
-import { getRoleIdByName, getUserRole } from "../user";
+import { getRoleIdByName, getUserRole, isUserAlreadyInOrganization } from "../user";
 import { ErrorCodes } from "../../utils/error";
 import { WithDbAndEnv } from "../../utils/commonTypes";
 import { eq, and, gt } from "drizzle-orm";
@@ -71,6 +71,24 @@ export async function inviteUserToOrg({
             roleName: "EMPLOYEE",
         });
     }
+
+
+    const isMember = await isUserAlreadyInOrganization({
+        db,
+        email: input.email.toLowerCase(),
+        organizationId,
+    });
+
+    if (isMember) {
+        return {
+            ok: false,
+            errorCode: ErrorCodes.ALREADY_MEMBER,
+            error: "User is already a member of this organization",
+            status: 400,
+        } as const;
+    }
+
+
 
     // 2. Otherwise → always create a new invite
     const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);

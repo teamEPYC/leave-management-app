@@ -25,6 +25,9 @@ import {
   Hospital,
   EyeClosed,
 } from "lucide-react";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 
 const leaveTypes = [
   {
@@ -52,7 +55,7 @@ export function LeaveTypeOverview() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Card className="col-span-4 rounded border-0 shadow-md">
+      <Card className="col-span-4 border-0 shadow-md rounded">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Leave Type Overview</CardTitle>
@@ -67,7 +70,7 @@ export function LeaveTypeOverview() {
           </DialogTrigger>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 rounded">
           {leaveTypes.map((type, idx) => (
             <div key={idx} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -92,17 +95,47 @@ export function LeaveTypeOverview() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="space-y-4 py-2 grid gap-4 grid-cols-2">
           {/* Placeholder for the form inputs */}
-          <input
-            type="text"
-            placeholder="Leave Type Name"
-            className="w-full p-2 border rounded-md"
-          />
-          <select className="w-full p-2 border rounded-md">
+
+          <div className="space-y-2 col-span-1">
+            <Label>Leave Name</Label>
+            <input
+              type="text"
+              placeholder="Leave Type Name"
+              className="p-2 border rounded-md col-span-1"
+            />
+          </div>
+          <div className="space-y-2 col-span-1">
+            <Label>Short code</Label>
+            <input
+              type="text"
+              placeholder="Short Code"
+              className="w-full p-2 border rounded-md col-span-1"
+            />
+          </div>
+          <div className="space-y-2 col-span-2">
+            <Label>Description</Label>
+            <Textarea
+              id="Leave Description"
+              placeholder="Describe this leave type..."
+              className="min-h-[100px]"
+            />
+          </div>
+          <RadioGroup defaultValue="option-one" className="col-span-1 my-auto">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="option-one" id="option-one" />
+              <Label htmlFor="option-one">Limited</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="option-two" id="option-two" />
+              <Label htmlFor="option-two">Unlimited</Label>
+            </div>
+          </RadioGroup>
+          {/* <select className="w-full p-2 border rounded-md">
             <option value="limited">Limited</option>
             <option value="unlimited">Unlimited</option>
-          </select>
+          </select> */}
           <input
             type="number"
             placeholder="Number of Days (if limited)"

@@ -138,16 +138,16 @@ export const LeaveHistoryItem: React.FC<LeaveHistoryItemProps> = ({
         <div className="flex justify-end gap-2 mt-6">
           {leave.status === "pending" && (
             <>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="rounded">
                 <Edit className="h-4 w-4 mr-1" /> Edit
               </Button>
-              <Button variant="destructive" size="sm">
+              <Button variant="destructive" size="sm" className="rounded">
                 <Trash2 className="h-4 w-4 mr-1" /> Delete
               </Button>
             </>
           )}
           <DialogClose asChild>
-            <Button variant="default" size="sm">
+            <Button variant="default" size="sm" className="rounded">
               <EyeClosed className="h-4 w-4 mr-1" /> Close
             </Button>
           </DialogClose>

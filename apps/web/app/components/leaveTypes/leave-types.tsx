@@ -28,6 +28,14 @@ import {
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { Switch } from "../ui/switch";
 
 const leaveTypes = [
   {
@@ -122,34 +130,59 @@ export function LeaveTypeOverview() {
               className="min-h-[100px]"
             />
           </div>
-          <RadioGroup defaultValue="option-one" className="col-span-1 my-auto">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="option-one" id="option-one" />
-              <Label htmlFor="option-one">Limited</Label>
+          <div className="flex flex-col gap-3 my-auto">
+            <Label>Set Limit</Label>
+            <RadioGroup
+              defaultValue="option-one"
+              className="col-span-1 my-auto"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="option-one" id="option-one" />
+                <Label htmlFor="option-one">Limited</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="option-two" id="option-two" />
+                <Label htmlFor="option-two">Unlimited</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div className="flex flex-col gap-3 my-auto">
+            <Label>Value</Label>
+            <div className="flex gap 4 h-9">
+              <input
+                type="number"
+                placeholder="Days"
+                className="w-full p-2 border rounded-md"
+              />
+              <div className="text-3xl px-2 ">/</div>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Yearly" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="annual">Yearly</SelectItem>
+                  <SelectItem value="sick">Quarterly</SelectItem>
+                  <SelectItem value="personal">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="option-two" id="option-two" />
-              <Label htmlFor="option-two">Unlimited</Label>
+          </div>
+          <div className="mt-3 col-span-1 flex flex-col gap-3">
+            <Label>Status</Label>
+            <div className="flex gap-2">
+              <Switch id="airplane-mode"  />
+              <Label htmlFor="airplane-mode">Active</Label>
             </div>
-          </RadioGroup>
-          {/* <select className="w-full p-2 border rounded-md">
-            <option value="limited">Limited</option>
-            <option value="unlimited">Unlimited</option>
-          </select> */}
-          <input
-            type="number"
-            placeholder="Number of Days (if limited)"
-            className="w-full p-2 border rounded-md"
-          />
+          </div>
         </div>
 
         <div className="flex justify-end gap-2">
           <DialogClose asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="rounded">
               <EyeClosed className="h-4 w-4 mr-1" /> Cancel
             </Button>
           </DialogClose>
-          <Button variant="default" size="sm">
+          <Button variant="default" size="sm" className="rounded">
             Save
           </Button>
         </div>

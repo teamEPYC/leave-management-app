@@ -2,6 +2,7 @@ import { Scalar } from "@scalar/hono-api-reference";
 import { getHono } from "./utils/hono";
 import { authEndpoint } from "./endpoints/auth";
 import { connectDb } from "./features/db/connect";
+import { organizationEndpoint } from "./endpoints/organization";
 
 const app = getHono();
 
@@ -28,22 +29,10 @@ app.use("*", async (c, next) => {
 
 // ✅ Register auth endpoint correctly
 app.route("/api/v1/auth", authEndpoint);
+app.route("/api/v1/organization", organizationEndpoint);
 
 app.get("/api", Scalar({ url: "/doc", theme: "elysiajs", layout: "classic" }));
 
-
-// app.get("/debug-db", async (c) => {
-//   try {
-//     const db = connectDb({ env: c.env as any });
-//     console.log("db", db);
-//     return c.json({ ok: true, message: "Database connection working", db });
-
-//   } catch (error: any) {
-//     console.error("Database test error:", error);
-//     return c.json({ ok: false, error: "Database test failed", details: error.message }, 500);
-//   }
-// });
-
-
 export default app;
+
 

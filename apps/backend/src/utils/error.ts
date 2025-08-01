@@ -13,6 +13,8 @@ export const ErrorCodes = {
   EMAIL_ALREADY_IN_USE: "EMAIL_ALREADY_IN_USE",
   INVALID_API_KEY: "INVALID_API_KEY",
   UNAUTHORIZED_USER: "UNAUTHORIZED_USER",
+  INVALID_INVITATION: "INVALID_INVITATION",
+  ALREADY_MEMBER: "ALREADY_MEMBER",
 } as const;
 
 export type ErrorCodes = (typeof ErrorCodes)[keyof typeof ErrorCodes];

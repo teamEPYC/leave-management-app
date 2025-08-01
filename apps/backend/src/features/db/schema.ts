@@ -1,5 +1,4 @@
 import { pgTable, text, uuid, timestamp, boolean, json, uniqueIndex, pgEnum } from "drizzle-orm/pg-core";
-import { pgTable, text, uuid, timestamp, boolean, json, uniqueIndex, pgEnum } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 // ─────────────────────────────────────────────────────────────
@@ -76,7 +75,9 @@ export const InvitationTable = pgTable("invitations", {
     .$defaultFn(() => crypto.randomUUID()),
   organizationId: uuid("organization_id").notNull().references(() => OrganizationTable.id),
   email: text().notNull(),
+  roleId: uuid("role_id").notNull().references(() => RoleTable.id),
   status: invitationStatusEnum("status").notNull().default("SENT"),
+  expiresAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   ...CommonRows,
 });
 

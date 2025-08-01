@@ -52,7 +52,7 @@ export function LeaveTypeOverview() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Card className="col-span-4">
+      <Card className="col-span-4 rounded border-0 shadow-md">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Leave Type Overview</CardTitle>
@@ -61,7 +61,7 @@ export function LeaveTypeOverview() {
             </CardDescription>
           </div>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="default" size="sm" className="rounded">
               <PlusCircle className="mr-2 h-4 w-4" /> Add Leave Type
             </Button>
           </DialogTrigger>

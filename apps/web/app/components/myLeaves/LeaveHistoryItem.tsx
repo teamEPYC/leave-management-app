@@ -48,7 +48,7 @@ export const LeaveHistoryItem: React.FC<LeaveHistoryItemProps> = ({
     <Dialog>
       <DialogTrigger asChild>
         {/* the card is now a dialogue trigger */}
-        <Card className="cursor-pointer hover:shadow-md transition overflow-auto">
+        <Card className="cursor-pointer shadow-none hover:shadow-md transition overflow-auto rounded-none border-0 border-t border-muted py-2 pt-3">
           <CardContent>
             <div className="flex items-center justify-between">
               <div className="space-y-2">
@@ -68,24 +68,24 @@ export const LeaveHistoryItem: React.FC<LeaveHistoryItemProps> = ({
                   </span>
                 </div>
               </div>
-            </div>
-            <div className="flex justify-end gap-2 mt-6 ">
-              {leave.status === "pending" && (
-                <>
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                    <div className="hidden lg:block ml-1"> Edit</div>
-                  </Button>
-                  <Button variant="destructive" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                    <div className="hidden lg:block ml-1"> Delete</div>
-                  </Button>
-                </>
-              )}
-              <Button variant="default" size="sm">
-                <Eye className="h-4 w-4" />
-                <div className="hidden lg:block ml-1"> View</div>
-              </Button>
+              <div className="flex justify-end gap-2 ">
+                {leave.status === "pending" && (
+                  <>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4" />
+                      <div className="hidden lg:block ml-1"> Edit</div>
+                    </Button>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="h-4 w-4" />
+                      <div className="hidden lg:block ml-1"> Delete</div>
+                    </Button>
+                  </>
+                )}
+                <Button variant="default" size="sm">
+                  <Eye className="h-4 w-4" />
+                  <div className="hidden lg:block ml    -1"> View</div>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -94,7 +94,7 @@ export const LeaveHistoryItem: React.FC<LeaveHistoryItemProps> = ({
       {/* Main Dialogue  */}
       <DialogContent className="grid">
         <DialogHeader className="gap-1">
-          <DialogTitle className="text-2xl flex items-center gap-4">
+          <DialogTitle className="text-2xl flex items-center gap-10">
             <div className="flex flex-row items-center justify-center gap-1">
               <CalendarDays className="w-6 h-6 text-primary" />
               {leave.type}

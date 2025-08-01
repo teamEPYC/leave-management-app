@@ -95,3 +95,46 @@ export const UserOrganizationTable = pgTable("user_organization", {
   isOwner: boolean('is_owner').notNull().default(false),
   ...CommonRows,
 });
+
+
+
+// ─────────────────────────────────────────────────────────────
+// GroupTable
+
+export const GroupTable = pgTable("groups", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => OrganizationTable.id),
+  name: text().notNull(),
+  description: text(),
+  icon: text(),
+  createdBy: uuid("created_by")
+    .notNull()
+    .references(() => UserTable.id),
+  ...CommonRows,
+});
+
+
+// ─────────────────────────────────────────────────────────────
+// GroupUserTable
+
+export const GroupUserTable = pgTable("group_users", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  groupId: uuid("group_id")
+    .notNull()
+    .references(() => GroupTable.id),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserTable.id),
+  isApprovalManager: boolean("is_approval_manager").notNull().default(false),
+  addedBy: uuid("added_by")
+    .notNull()
+    .references(() => UserTable.id),
+  ...CommonRows,
+});
+

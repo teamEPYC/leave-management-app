@@ -1,5 +1,9 @@
 import { pgTable, text, uuid, timestamp, boolean, json, uniqueIndex, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, boolean, json, uniqueIndex, pgEnum } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+// ─────────────────────────────────────────────────────────────
+// Shared fields
 
 // ─────────────────────────────────────────────────────────────
 // Shared fields

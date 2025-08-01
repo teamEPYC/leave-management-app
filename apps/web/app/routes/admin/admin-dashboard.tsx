@@ -102,7 +102,7 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 grid-cols-3">
+      <div className="grid gap-4 gird-cols-2 md:grid-cols-3">
         {stats.map((stat, idx) => (
           <DashboardStatCard
             key={idx}

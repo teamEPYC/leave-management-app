@@ -65,7 +65,7 @@ export default function Dashboard() {
         <ProgressIndicator
           Icon={Hospital}
           heading="Sick Leave Balance"
-          value={8}
+          value={-8}
           total={20}
           bottomText="Used: 6 of 20 days"
         />

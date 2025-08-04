@@ -4,8 +4,56 @@ import { connectDb } from "../features/db/connect";
 import { z } from "zod";
 import { createGroup } from "../features/groups/create";
 import { deactivateGroup, editGroup } from "../features/groups/update";
+import { listGroupsForCurrentOrg } from "../features/groups/get";
 
 export const groupEndpoint = getHono();
+
+
+groupEndpoint.openapi(
+    {
+        method: "get",
+        path: "/list",
+        tags: ["Groups"],
+        summary: "List groups for the current organization",
+        description:
+            "OWNER / ADMIN: Returns all groups in the organization. EMPLOYEE: Returns only groups they are a member of.",
+        request: {
+            headers: ApiKeyHeaderSchema,
+        },
+        responses: {
+            ...getAuthOpenApiResponse(
+                z.object({
+                    ok: z.literal(true),
+                    data: z.array(
+                        z.object({
+                            id: z.string().uuid(),
+                            organizationId: z.string().uuid(),
+                            name: z.string(),
+                            description: z.string().nullable(),
+                            icon: z.string().nullable(),
+                            isActive: z.boolean(),
+                            createdAt: z.string(),
+                            updatedAt: z.string(),
+                        })
+                    ),
+                })
+            ),
+        },
+    },
+    async (c) => {
+        const db = connectDb({ env: c.env });
+        const apiKey = c.req.valid("header")["x-api-key"];
+
+        const result = await listGroupsForCurrentOrg({
+            db,
+            env: c.env,
+            apiKey,
+        });
+
+        return c.json(result, result.ok ? 200 : result.status ?? 400);
+    }
+);
+
 
 groupEndpoint.openapi(
     {
@@ -49,6 +97,7 @@ groupEndpoint.openapi(
         return c.json(result, result.ok ? 200 : result.status ?? 400);
     }
 );
+
 
 
 
@@ -140,3 +189,4 @@ groupEndpoint.openapi(
         return c.json(result, result.ok ? 200 : result.status ?? 400);
     }
 );
+

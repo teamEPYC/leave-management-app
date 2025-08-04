@@ -3,7 +3,7 @@ import { ApiKeyHeaderSchema, getAuthOpenApiResponse, jsonContent } from "../util
 import { connectDb } from "../features/db/connect";
 import { z } from "zod";
 import { createGroup } from "../features/groups/create";
-import { editGroup } from "../features/groups/update";
+import { deactivateGroup, editGroup } from "../features/groups/update";
 
 export const groupEndpoint = getHono();
 
@@ -95,6 +95,46 @@ groupEndpoint.openapi(
             apiKey,
             groupId,
             input: body,
+        });
+
+        return c.json(result, result.ok ? 200 : result.status ?? 400);
+    }
+);
+
+
+
+groupEndpoint.openapi(
+    {
+        method: "delete",
+        path: "/:groupId",
+        tags: ["Groups"],
+        summary: "Deactivate a group",
+        description: "Only OWNER or ADMIN can deactivate groups.",
+        request: {
+            headers: ApiKeyHeaderSchema,
+            params: z.object({
+                groupId: z.string().uuid(),
+            }),
+        },
+        responses: {
+            ...getAuthOpenApiResponse(
+                z.object({
+                    ok: z.literal(true),
+                    data: z.object({ groupId: z.string().uuid() }),
+                })
+            ),
+        },
+    },
+    async (c) => {
+        const db = connectDb({ env: c.env });
+        const apiKey = c.req.valid("header")["x-api-key"];
+        const { groupId } = c.req.valid("param");
+
+        const result = await deactivateGroup({
+            db,
+            env: c.env,
+            apiKey,
+            groupId,
         });
 
         return c.json(result, result.ok ? 200 : result.status ?? 400);

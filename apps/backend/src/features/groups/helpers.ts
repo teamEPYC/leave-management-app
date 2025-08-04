@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { GroupTable, UserOrganizationTable } from "../db/schema";
 import { ErrorCodes } from "../../utils/error";
-import { WithDbAndEnv } from "../../utils/commonTypes";
+import { WithDb, WithDbAndEnv } from "../../utils/commonTypes";
 
 export async function ensureUniqueGroupName({
     db,
@@ -57,4 +57,31 @@ export async function ensureUsersInOrganization({
     }
 
     return { ok: true } as const;
+}
+
+
+
+export async function getActiveGroupById({
+    db,
+    groupId,
+}: WithDb<{ groupId: string }>) {
+    const group = await db
+        .select()
+        .from(GroupTable)
+        .where(and(eq(GroupTable.id, groupId), eq(GroupTable.isActive, true)))
+        .limit(1);
+
+    if (group.length === 0) {
+        return {
+            ok: false,
+            errorCode: ErrorCodes.NOT_FOUND,
+            error: "Group not found or already inactive",
+            status: 404,
+        } as const;
+    }
+
+    return {
+        ok: true,
+        group: group[0],
+    } as const;
 }

@@ -15,6 +15,8 @@ export const ErrorCodes = {
   UNAUTHORIZED_USER: "UNAUTHORIZED_USER",
   INVALID_INVITATION: "INVALID_INVITATION",
   ALREADY_MEMBER: "ALREADY_MEMBER",
+  ALREADY_EXISTS: "ALREADY_EXISTS",
+  INVALID_USER: "INVALID_USER",
 } as const;
 
 export type ErrorCodes = (typeof ErrorCodes)[keyof typeof ErrorCodes];

@@ -57,15 +57,15 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <ProgressIndicator
           Icon={CalendarDays}
-          heading="Annual Leave Balance"
+          heading="Leave Balance"
           value={14}
           total={20}
           bottomText="Used: 6 of 20 days"
         />
         <ProgressIndicator
           Icon={Hospital}
-          heading="Sick Leave Balance"
-          value={-8}
+          heading="Work from home"
+          value={8}
           total={20}
           bottomText="Used: 6 of 20 days"
         />

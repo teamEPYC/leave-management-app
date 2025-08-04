@@ -13,8 +13,16 @@ import { Card, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { UserStatusBadge } from "../shared/user-status-badge";
 import { Button } from "../ui/button";
-import { ExternalLink } from "lucide-react";
+import {
+  CalendarDays,
+  Clock10,
+  ExternalLink,
+  Hospital,
+  Users2,
+} from "lucide-react";
 import { DataTable } from "../ui/data-table";
+import Dashboard from "~/routes/dashboard";
+import { EditableProgressIndicator } from "./EditableProgressIndicator";
 
 interface User {
   id: number;
@@ -24,6 +32,28 @@ interface User {
   groups: string[];
   status: "Active" | "Inactive";
 }
+
+// mock for prog indicator
+const stats = [
+  {
+    title: "Leave Balance",
+    Icon: Clock10,
+    value: 2,
+    total: 18,
+  },
+  {
+    title: "Work from Home",
+    Icon: Hospital,
+    value: 8,
+    total: 18,
+  },
+  {
+    title: "Pending Requests",
+    Icon: Users2,
+    value: 4,
+    total: 18,
+  },
+];
 
 // For leaves history Data table
 interface Leaves {
@@ -93,7 +123,7 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
           </SheetTitle>
         </SheetHeader>
         {user && (
-          <div className="flex flex-col p-4 gap-4">
+          <div className="flex flex-col p-4 gap-4 overflow-auto">
             {/* Name with favicon of user */}
             <div className="flex flex-row gap-4 text-xl font-bold items-center">
               <Avatar className="size-12">
@@ -111,7 +141,7 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
 
             {/* User detail card */}
             <Card className="rounded border-0">
-              <CardHeader className="flex justify-between border-b border-muted">
+              <CardHeader className="flex justify-between">
                 <div className="flex flex-col gap-2">
                   <CardTitle>Leave History</CardTitle>
                   <CardDescription>
@@ -124,7 +154,7 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
                 </Button>
               </CardHeader>
               {/* data table of past leaves */}
-              <div className="p-4 max-h-84 overflow-auto">
+              <div className="p-4 pt-0 max-h-84 overflow-auto">
                 <DataTable
                   columns={columns}
                   data={sampleLeave}
@@ -132,6 +162,22 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
                 />
               </div>
             </Card>
+
+            {/* Leave balance card with progress indicator*/}
+
+            <div className="grid grid-cols-2 gap-4">
+              {stats.map((stats) => (
+                <EditableProgressIndicator
+                  heading={stats.title}
+                  value={stats.value}
+                  total={stats.total}
+                  Icon={stats.Icon}
+                  onChange={(used, total) =>
+                    console.log("Updated:", used, total)
+                  }
+                />
+              ))}
+            </div>
 
             <div className="space-y-4 mt-4 text-sm">
               <div>

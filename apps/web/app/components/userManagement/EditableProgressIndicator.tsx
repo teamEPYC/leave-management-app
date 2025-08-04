@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Progress } from "../ui/progress";
-import { Input } from "../ui/input"; 
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { cn } from "~/lib/utils";
 
 interface EditableProgressIndicatorProps {
@@ -10,6 +11,7 @@ interface EditableProgressIndicatorProps {
   className?: string;
   Icon?: React.FC<{ className: string }>;
   onChange?: (value: number, total: number) => void;
+  onSave?: (value: number, total: number) => void;
 }
 
 export const EditableProgressIndicator: React.FC<
@@ -21,9 +23,14 @@ export const EditableProgressIndicator: React.FC<
   Icon,
   className,
   onChange,
+  onSave,
 }) => {
   const [value, setValue] = React.useState(initialValue);
   const [total, setTotal] = React.useState(initialTotal);
+
+  const valueDiff = value - initialValue;
+  const totalDiff = total - initialTotal;
+  const isChanged = value !== initialValue || total !== initialTotal;
 
   React.useEffect(() => {
     onChange?.(value, total);
@@ -42,32 +49,62 @@ export const EditableProgressIndicator: React.FC<
       </div>
 
       <div className="flex items-baseline justify-between gap-2">
-        <div className="flex flex-col gap-1">
+        {/* Used Field */}
+        <div className="flex flex-col gap-1 relative">
           <label className="text-xs text-muted-foreground">Used</label>
           <Input
             type="number"
             value={value}
             onChange={(e) => setValue(Number(e.target.value))}
-            className="w-20"
+            className="w-24"
             min={0}
           />
+          {valueDiff !== 0 && (
+            <span
+              className={cn(
+                "absolute right-[-50px] top-7 text-sm font-medium",
+                valueDiff > 0 ? "text-green-600" : "text-red-600"
+              )}
+            >
+              {valueDiff > 0 ? `+${valueDiff}` : valueDiff}
+            </span>
+          )}
         </div>
 
-        <span className="text-lg font-semibold text-muted-foreground"></span>
-
-        <div className="flex flex-col gap-1">
+        {/* Total Field */}
+        <div className="flex flex-col gap-1 relative">
           <label className="text-xs text-muted-foreground">Total</label>
           <Input
             type="number"
             value={total}
             onChange={(e) => setTotal(Number(e.target.value))}
-            className="w-20"
+            className="w-24"
             min={0}
           />
+          {totalDiff !== 0 && (
+            <span
+              className={cn(
+                "absolute left-[-50px] top-7 text-sm font-medium",
+                totalDiff > 0 ? "text-green-600" : "text-red-600"
+              )}
+            >
+              {totalDiff > 0 ? `+${totalDiff}` : totalDiff}
+            </span>
+          )}
         </div>
       </div>
 
       <Progress value={Math.round(percent)} className="h-3 rounded-full" />
+
+      <div className="flex justify-end">
+        <Button
+          size="sm"
+          variant={isChanged ? "default" : "outline"}
+          onClick={() => onSave?.(value, total)}
+        >
+          Save Changes
+        </Button>
+      </div>
     </div>
   );
 };

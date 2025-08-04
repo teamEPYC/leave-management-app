@@ -36,7 +36,7 @@ interface User {
 // mock for prog indicator
 const stats = [
   {
-    title: "Leave Balance",
+    title: "Annual Leave Balance",
     Icon: Clock10,
     value: 2,
     total: 18,
@@ -138,10 +138,11 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
                 </div>
               </div>
             </div>
-
+            {/* Groups and Role */}
+            <div className=""></div>
             {/* User detail card */}
             <Card className="rounded border-0">
-              <CardHeader className="flex justify-between">
+              <CardHeader className="flex justify-between px-4 text-lg">
                 <div className="flex flex-col gap-2">
                   <CardTitle>Leave History</CardTitle>
                   <CardDescription>
@@ -164,20 +165,26 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
             </Card>
 
             {/* Leave balance card with progress indicator*/}
+            <Card className="gap-y-2 rounded">
+              <CardHeader className="px-4 text-lg">
+                <CardTitle>Leave Balance</CardTitle>
+                <CardDescription>Check User's Leave balance</CardDescription>
+              </CardHeader>
 
-            <div className="grid grid-cols-2 gap-4">
-              {stats.map((stats) => (
-                <EditableProgressIndicator
-                  heading={stats.title}
-                  value={stats.value}
-                  total={stats.total}
-                  Icon={stats.Icon}
-                  onChange={(used, total) =>
-                    console.log("Updated:", used, total)
-                  }
-                />
-              ))}
-            </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {stats.map((stats) => (
+                  <EditableProgressIndicator
+                    heading={stats.title}
+                    value={stats.value}
+                    total={stats.total}
+                    Icon={stats.Icon}
+                    onChange={(used, total) =>
+                      console.log("Updated:", used, total)
+                    }
+                  />
+                ))}
+              </div>
+            </Card>
 
             <div className="space-y-4 mt-4 text-sm">
               <div>

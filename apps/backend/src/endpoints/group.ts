@@ -3,6 +3,7 @@ import { ApiKeyHeaderSchema, getAuthOpenApiResponse, jsonContent } from "../util
 import { connectDb } from "../features/db/connect";
 import { z } from "zod";
 import { createGroup } from "../features/groups/create";
+import { editGroup } from "../features/groups/update";
 
 export const groupEndpoint = getHono();
 
@@ -42,6 +43,57 @@ groupEndpoint.openapi(
             db,
             env: c.env,
             apiKey,
+            input: body,
+        });
+
+        return c.json(result, result.ok ? 200 : result.status ?? 400);
+    }
+);
+
+
+
+groupEndpoint.openapi(
+    {
+        method: "put",
+        path: "/:groupId",
+        tags: ["Groups"],
+        summary: "Edit a group",
+        description: "Only OWNER or ADMIN can edit groups",
+        request: {
+            headers: ApiKeyHeaderSchema,
+            params: z.object({
+                groupId: z.string().uuid(),
+            }),
+            body: jsonContent(
+                z.object({
+                    name: z.string().min(1).optional(),
+                    description: z.string().optional(),
+                    icon: z.string().url().optional(),
+                    approvalManagerIds: z.array(z.string().uuid()).optional(),
+                    memberIds: z.array(z.string().uuid()).optional(),
+                })
+            ),
+        },
+        responses: {
+            ...getAuthOpenApiResponse(
+                z.object({
+                    ok: z.literal(true),
+                    data: z.object({ groupId: z.string().uuid() }),
+                })
+            ),
+        },
+    },
+    async (c) => {
+        const db = connectDb({ env: c.env });
+        const apiKey = c.req.valid("header")["x-api-key"];
+        const { groupId } = c.req.valid("param");
+        const body = c.req.valid("json");
+
+        const result = await editGroup({
+            db,
+            env: c.env,
+            apiKey,
+            groupId,
             input: body,
         });
 

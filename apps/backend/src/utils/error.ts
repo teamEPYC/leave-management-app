@@ -17,6 +17,7 @@ export const ErrorCodes = {
   ALREADY_MEMBER: "ALREADY_MEMBER",
   ALREADY_EXISTS: "ALREADY_EXISTS",
   INVALID_USER: "INVALID_USER",
+  NOT_FOUND: "NOT_FOUND",
 } as const;
 
 export type ErrorCodes = (typeof ErrorCodes)[keyof typeof ErrorCodes];

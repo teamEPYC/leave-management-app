@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { WithDbAndEnv } from "../../utils/commonTypes";
 import { UserTable } from "../db/schema";
 

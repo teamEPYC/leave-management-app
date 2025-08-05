@@ -39,7 +39,7 @@ export default function ApplyLeave() {
         </p>
       </div>
 
-      <Card className="">
+      <Card className="rounded">
         <CardHeader>
           <CardTitle>Leave Application Form</CardTitle>
           <CardDescription>

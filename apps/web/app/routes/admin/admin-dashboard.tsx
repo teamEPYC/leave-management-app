@@ -7,16 +7,28 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import {
+  ArrowDownFromLineIcon,
   CalendarDays,
+  CircleAlert,
+  ClipboardPlus,
   Clock10,
+  Clock11,
   ExternalLink,
+  Filter,
   Hospital,
+  Icon,
+  Plane,
+  Plus,
+  User,
+  UserPlus,
   Users,
+  Users2,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { RecentLeaveRequest } from "~/components/dashboard/recentLeaves/recent-leave-request";
 import { LeaveHistoryItem } from "~/components/myLeaves/LeaveHistoryItem";
 import { LeaveTypeOverview } from "~/components/leaveTypes/leave-types";
+import { DashboardStatCard } from "~/components/dashboard/dashboard-stat-card";
 
 // mock data
 const recentLeaves = [
@@ -56,6 +68,30 @@ const pendingRequests = [
   },
 ];
 
+const stats = [
+  {
+    title: "Pending Requests",
+    Icon: Clock10,
+    value: 2,
+    subtext: "+2 since yesterday",
+    borderColor: "border-l-yellow-500",
+  },
+  {
+    title: "Upcoming Leaves",
+    Icon: Hospital,
+    value: 8,
+    subtext: "Used 8 of 20",
+    borderColor: "border-l-blue-500",
+  },
+  {
+    title: "Total Active Users",
+    Icon: Users2,
+    value: 4,
+    subtext: "+1 today",
+    borderColor: "border-l-red-500",
+  },
+];
+
 export default function AdminDashboard() {
   return (
     <div className="space-y-6">
@@ -66,40 +102,43 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Pending Requests
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">+2 since yesterday</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">42</div>
-            <p className="text-xs text-muted-foreground">Team members</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 gird-cols-2 md:grid-cols-3">
+        {stats.map((stat, idx) => (
+          <DashboardStatCard
+            key={idx}
+            title={stat.title}
+            Icon={stat.Icon}
+            value={stat.value}
+            subtext={stat.subtext}
+            borderColor={stat.borderColor}
+          />
+        ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-12">
-        <Card className="col-span-6">
+      <div className="grid gap-4 lg:grid-cols-12 rounded">
+        <Card className="col-span-12 rounded border-0">
           <CardHeader>
-            <CardTitle>Pending Team Requests</CardTitle>
-            <CardDescription>
-              Approve or reject pending team leaves.
-            </CardDescription>
+            <div className="flex justify-between">
+              <div className="flex flex-col gap-2">
+                <CardTitle>Pending Team Requests</CardTitle>
+                <CardDescription>
+                  Approve or reject pending team leaves.
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="default" className="rounded p-2">
+                  {" "}
+                  <Plus /> Add Request
+                </Button>
+                <Button variant="outline" className="rounded p-2">
+                  {" "}
+                  <Filter />
+                  Filter
+                </Button>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="grid gap-4">
+          <CardContent className="grid gap-4 ">
             {pendingRequests.slice(0, 5).map((leave) => (
               <LeaveHistoryItem key={leave.id} leave={leave} />
             ))}
@@ -110,9 +149,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-12">
-        <Card className="col-span-6">
-          <CardHeader>
+      <div className="grid gap-4 lg:grid-cols-12 rounded">
+        <Card className="col-span-6 rounded border-0">
+          <CardHeader className="border-b border-muted">
             <CardTitle>My Leaves</CardTitle>
             <CardDescription>
               Your leave requests and their current status.
@@ -128,37 +167,53 @@ export default function AdminDashboard() {
             />
           ))}
         </Card>
-
-        <Card className="col-span-6">
-          <CardHeader>
+        {/* will move this somewhere else */}
+        <Card className="col-span-6 rounded border-0">
+          <CardHeader className="border-b border-muted">
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>
               Perform actions related to users and approvals.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 rounded">
             {[
-              { label: "Add New User", desc: "Register a new team member" },
               {
+                Icon: <UserPlus size={28} />,
+                label: "Add New User",
+                desc: "Register a new team member",
+              },
+              {
+                Icon: <Plane size={28} />,
                 label: "Create Leave Type",
                 desc: "Define new leave categories",
               },
               {
+                Icon: <ArrowDownFromLineIcon size={28} />,
                 label: "Manage Approval Groups",
                 desc: "Set group-level leave policies",
               },
               {
+                Icon: <CircleAlert size={28} />,
                 label: "Schedule All-Hands",
                 desc: "Plan upcoming team meetings",
               },
-              { label: "Export Reports", desc: "Download leave data reports" },
+              {
+                Icon: <ClipboardPlus size={28} />,
+                label: "Export Reports",
+                desc: "Download leave data reports",
+              },
             ].map((item, idx) => (
               <button
                 key={idx}
-                className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors"
+                className="w-full text-left p-3 rounded border-0 hover:bg-accent transition-colors"
               >
-                <p className="font-medium">{item.label}</p>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
+                <div className="flex justify-start items-center gap-2">
+                  <div className="rounded-full p-3 bg-muted">{item.Icon}</div>
+                  <div className="flex flex-col">
+                    <p className="font-medium">{item.label}</p>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </div>
+                </div>
               </button>
             ))}
           </CardContent>

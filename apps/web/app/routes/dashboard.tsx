@@ -45,9 +45,8 @@ const leaves = [
 ];
 
 export default function Dashboard() {
-  console.log("Dashboard component");
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-muted">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
@@ -58,14 +57,14 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <ProgressIndicator
           Icon={CalendarDays}
-          heading="Annual Leave Balance"
+          heading="Leave Balance"
           value={14}
           total={20}
           bottomText="Used: 6 of 20 days"
         />
         <ProgressIndicator
           Icon={Hospital}
-          heading="Sick Leave Balance"
+          heading="Work from home"
           value={8}
           total={20}
           bottomText="Used: 6 of 20 days"
@@ -77,7 +76,7 @@ export default function Dashboard() {
           total={2}
           bottomText={`Used: ${1} of ${2} days`}
         />
-        <Card className="rounded-md">
+        <Card className="rounded border-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Team Status</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -92,7 +91,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-12">
-        <Card className="col-span-6">
+        <Card className="col-span-6 rounded border-0">
           <CardHeader className="border-b-1 w-full">
             <CardTitle>Recent Leave Requests</CardTitle>
             <CardDescription className="mb-2">
@@ -110,7 +109,7 @@ export default function Dashboard() {
           ))}
         </Card>
 
-        <Card className="col-span-6">
+        <Card className="col-span-6 rounded border-0">
           <CardHeader className="border-b-1">
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription className="mb-2">

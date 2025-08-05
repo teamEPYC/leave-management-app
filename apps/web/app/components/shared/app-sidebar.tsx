@@ -11,6 +11,7 @@ import {
   PlusCircle,
   Search,
   Settings,
+  UserCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,6 +35,11 @@ const items = [
     title: "Dashboard",
     url: "/dashboard",
     icon: Home,
+  },
+  {
+    title: "User Management",
+    url: "/user-management",
+    icon: UserCheck,
   },
   {
     title: "Apply for Leave",
@@ -71,25 +77,27 @@ export function AppSidebar() {
   const location = useLocation();
 
   return (
-    <Sidebar className="border-r">
-      <SidebarHeader className=" px-6 py-4">
+    <Sidebar className="border-r" variant="sidebar">
+      <SidebarHeader className="bg-primary px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <CalendarClock size={24} />
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary text-primary-foreground">
+            <CalendarClock size={24} color="black" />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-lg font-semibold">Leave Manager</h1>
+            <h1 className="text-lg font-semibold text-secondary">
+              Leave Manager
+            </h1>
             <p className="text-sm text-muted-foreground">Employee Portal</p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="bg-primary px-3 py-4">
         <SidebarGroup>
           <SidebarGroupLabel className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
             {/* Navigation */}
           </SidebarGroupLabel>
-          <SidebarGroupContent className="gap-1 pt-2">
+          <SidebarGroupContent className="gap-1 pt-2 text-secondary">
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -110,8 +118,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t p-4">
-        <div className="flex items-center gap-3 rounded-lg p-3 bg-muted/50">
+      <SidebarFooter className="bg-primary border-t p-4">
+        <div className="flex items-center gap-3 rounded-lg p-3 bg-secondary">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
             JD
           </div>

@@ -9,7 +9,7 @@ import { Button } from "~/components/ui/button";
 import { Link } from "react-router-dom";
 import { CalendarCheckIcon, Globe } from "lucide-react";
 
-const googleAuthUrl = "/dashboard"; // Replace with your actual Google OAuth endpoint
+const googleAuthUrl = "/dashboard";
 
 export default function LoginCard() {
   return (

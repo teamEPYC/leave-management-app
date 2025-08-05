@@ -23,6 +23,7 @@ import {
 import { DataTable } from "../ui/data-table";
 import Dashboard from "~/routes/dashboard";
 import { EditableProgressIndicator } from "./EditableProgressIndicator";
+import { UserAccessEditor } from "./UserAccessEditor";
 
 interface User {
   id: number;
@@ -125,8 +126,8 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
         {user && (
           <div className="flex flex-col p-4 gap-4 overflow-auto">
             {/* Name with favicon of user */}
-            <div className="flex flex-row gap-4 text-xl font-bold items-center">
-              <Avatar className="size-12">
+            <div className="flex flex-row gap-4 text-xl font-bold items-center ">
+              <Avatar className="size-15">
                 {/* replave with user.favicon */}
                 <AvatarImage src="https://github.com/shadcn.png" />
                 <AvatarFallback>CN</AvatarFallback>
@@ -139,9 +140,18 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
               </div>
             </div>
             {/* Groups and Role */}
-            <div className=""></div>
+            <div className=" p-4 ">
+              <UserAccessEditor
+                defaultRole={user.role}
+                defaultStatus={user.status}
+                defaultGroups={user.groups}
+                onChange={(updated) => {
+                  console.log("Updated Access:", updated);
+                }}
+              />
+            </div>
             {/* User detail card */}
-            <Card className="rounded border-0">
+            <Card className="rounded border-0 shadow-none">
               <CardHeader className="flex justify-between px-4 text-lg">
                 <div className="flex flex-col gap-2">
                   <CardTitle>Leave History</CardTitle>
@@ -165,7 +175,7 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
             </Card>
 
             {/* Leave balance card with progress indicator*/}
-            <Card className="gap-y-2 rounded">
+            <Card className="gap-y-2 border-0 shadow-none">
               <CardHeader className="px-4 text-lg">
                 <CardTitle>Leave Balance</CardTitle>
                 <CardDescription>Check User's Leave balance</CardDescription>
@@ -185,19 +195,6 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
                 ))}
               </div>
             </Card>
-
-            <div className="space-y-4 mt-4 text-sm">
-              <div>
-                <span className="font-semibold">Role:</span> {user.role}
-              </div>
-              <div>
-                <span className="font-semibold">Groups:</span>{" "}
-                {user.groups.join(", ")}
-              </div>
-              <div>
-                <span className="font-semibold">Status:</span> {user.status}
-              </div>
-            </div>
           </div>
         )}
       </SheetContent>

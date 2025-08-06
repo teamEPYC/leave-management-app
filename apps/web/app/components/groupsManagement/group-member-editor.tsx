@@ -18,7 +18,8 @@ import {
   CommandItem,
 } from "../ui/command";
 import { Badge } from "../ui/badge";
-import { X } from "lucide-react";
+import { Edit, X } from "lucide-react";
+import { CardDescription } from "../ui/card";
 
 interface Props {
   currentMembers: string[];
@@ -60,8 +61,11 @@ export default function GroupMemberEditor({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          Edit Members
+        <Button className="" variant="ghost" size="sm">
+          <div className="flex flex-row gap-2 justify-center items-center">
+            <Edit size={16} />
+            <CardDescription className="">Edit Members:</CardDescription>
+          </div>
         </Button>
       </DialogTrigger>
 

@@ -37,19 +37,27 @@ function renderLimitedList(items: string[]) {
 
   return (
     <div className="flex items-center">
-      {displayItems.map((item, index) => (
-        <div
-          key={item}
-          className={`flex rounded-full size-8 font-semibold text-white shadow-sm ring-2 ring-background ${
-            index > 0 ? "-ml-2" : ""
-          }`}
-          style={{ backgroundColor: randomColor() }}
-        >
-          <span className="m-auto text-xs">
-            {item[0]?.toUpperCase() + (item[1] || "").toUpperCase()}
-          </span>
-        </div>
-      ))}
+      {displayItems.map((item, index) => {
+        const [color, setColor] = React.useState<string | null>(null);
+
+        React.useEffect(() => {
+          setColor(randomColor());
+        }, []);
+
+        return (
+          <div
+            key={item}
+            className={`flex rounded-full size-8 font-semibold text-white shadow-sm ring-2 ring-background ${
+              index > 0 ? "-ml-2" : ""
+            }`}
+            style={{ backgroundColor: color || "transparent" }}
+          >
+            <span className="m-auto text-xs">
+              {item[0]?.toUpperCase() + (item[1] || "").toUpperCase()}
+            </span>
+          </div>
+        );
+      })}
       {extraCount > 0 && (
         <div className="-ml-2 flex items-center justify-center rounded-full size-8 bg-muted text-muted-foreground text-xs font-medium ring-2 ring-background">
           +{extraCount}

@@ -1,24 +1,24 @@
 import { and, eq, sql } from "drizzle-orm";
-import { LeaveTypeTable, LeaveTypeGroupTable } from "../db/schema";
 import { ErrorCodes } from "../../utils/error";
-import { WithDbAndEnv } from "../../utils/commonTypes";
-import { getUserFromApiKey } from "../auth/auth";
-import { getUserRole } from "../user";
+import { LeaveTypeGroupTable, LeaveTypeTable } from "../db/schema";
 import { checkOrganizationIsActive } from "../organization/check-organization";
+import { getUserRole } from "../user";
+import { getUserFromApiKey } from "../auth/auth";
+import { WithDbAndEnv } from "../../utils/commonTypes";
 
-type CreateLeaveTypeInput = {
+export type CreateLeaveTypeInput = {
     organizationId: string;
     name: string;
     shortCode: string;
-    icon?: string;
-    description?: string;
+    icon: string | null;
+    description: string | null;
     isLimited: boolean;
-    limitType?: "YEAR" | "QUARTER" | "MONTH";
-    limitDays?: number;
+    limitType: "YEAR" | "QUARTER" | "MONTH" | null;
+    limitDays: number | null;
     appliesToEveryone: boolean;
     employeeType: "FULL_TIME" | "PART_TIME";
-    groupIds?: string[];
-};
+    groupIds: string[] | null;
+}
 
 export async function createLeaveType({
     db,
@@ -28,9 +28,7 @@ export async function createLeaveType({
 }: WithDbAndEnv<{ apiKey: string; input: CreateLeaveTypeInput }>) {
     // 1. Auth + role check
     const userRes = await getUserFromApiKey({ db, env, apiKey });
-    if (!userRes.ok) {
-        return userRes;
-    }
+    if (!userRes.ok) return userRes;
     const user = userRes.user;
 
     const { isOwner, isAdmin } = await getUserRole({
@@ -47,16 +45,8 @@ export async function createLeaveType({
         } as const;
     }
 
-    const orgRes = await checkOrganizationIsActive({ db, organizationId: input.organizationId, env });
-    if (!orgRes.ok) {
-        return {
-            ok: false,
-            errorCode: ErrorCodes.INVALID_REQUEST,
-            error: "Organization not found or inactive",
-            status: 400,
-        } as const;
-    }
-
+    const orgRes = await checkOrganizationIsActive({ db, organizationId: input.organizationId });
+    if (!orgRes.ok) return orgRes;
 
     // 2. Limited/Unlimited validation
     if (input.isLimited) {
@@ -69,11 +59,11 @@ export async function createLeaveType({
             } as const;
         }
     } else {
-        input.limitType = undefined;
-        input.limitDays = undefined;
+        input.limitType = null;
+        input.limitDays = null;
     }
 
-    // 3. Uniqueness checks — name
+    // 3. Name uniqueness check (case-insensitive)
     const existingName = await db
         .select()
         .from(LeaveTypeTable)
@@ -90,39 +80,45 @@ export async function createLeaveType({
             ok: false,
             errorCode: ErrorCodes.ALREADY_EXISTS,
             error: `Leave type '${input.name}' already exists in this organization`,
-            status: 400,
+            status: 409, // conflict
         } as const;
     }
 
-    // 4. Insert leave type + groups in transaction
-    const [leaveType] = await db
-        .insert(LeaveTypeTable)
-        .values({
-            organizationId: input.organizationId,
-            name: input.name,
-            shortCode: input.shortCode,
-            icon: input.icon,
-            description: input.description,
-            isLimited: input.isLimited,
-            limitType: input.limitType !== undefined && input.limitType !== null
-                ? input.limitType
-                : null,
-            limitDays: input.limitDays !== undefined && input.limitDays !== null
-                ? String(input.limitDays)
-                : null,
-            appliesToEveryone: input.appliesToEveryone,
-            employeeType: input.employeeType,
-        })
-        .returning();
+    // 4. Insert + optional group assignments
+    try {
+        const [leaveType] = await db
+            .insert(LeaveTypeTable)
+            .values({
+                organizationId: input.organizationId,
+                name: input.name,
+                shortCode: input.shortCode, // can be duplicate
+                icon: input.icon,
+                description: input.description,
+                isLimited: input.isLimited,
+                limitType: input.limitType ? input.limitType : null,
+                limitDays: input.limitDays ? String(input.limitDays) : null,
+                appliesToEveryone: input.appliesToEveryone,
+                employeeType: input.employeeType,
+            })
+            .returning();
 
+        if (!input.appliesToEveryone && input.groupIds?.length) {
+            const groupRows = input.groupIds.map((gid) => ({
+                leaveTypeId: leaveType.id,
+                groupId: gid,
+            }));
+            await db.insert(LeaveTypeGroupTable).values(groupRows);
+        }
 
-    if (!input.appliesToEveryone && input.groupIds && input.groupIds.length > 0) {
-        const groupRows = input.groupIds.map((gid) => ({
-            leaveTypeId: leaveType.id,
-            groupId: gid,
-        }));
-        await db.insert(LeaveTypeGroupTable).values(groupRows);
+        return { ok: true, data: { leaveTypeId: leaveType.id } } as const;
+
+    } catch (err: any) {
+        console.error("Create leave type error:", err);
+        return {
+            ok: false,
+            errorCode: ErrorCodes.DB_ERROR,
+            error: "Failed to create leave type — possibly duplicate name or invalid data",
+            status: 400,
+        } as const;
     }
-
-    return { ok: true, data: { leaveTypeId: leaveType.id } } as const;
 }

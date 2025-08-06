@@ -1,12 +1,12 @@
 import { and, eq } from "drizzle-orm";
 import { OrganizationTable } from "../db/schema";
 import { ErrorCodes } from "../../utils/error";
-import { WithDbAndEnv } from "../../utils/commonTypes";
+import { WithDb, WithDbAndEnv } from "../../utils/commonTypes";
 
 export async function checkOrganizationIsActive({
     db,
     organizationId,
-}: WithDbAndEnv<{ organizationId: string }>) {
+}: WithDb<{ organizationId: string }>) {
     const org = await db
         .select({ id: OrganizationTable.id, isActive: OrganizationTable.isActive })
         .from(OrganizationTable)

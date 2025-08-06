@@ -165,17 +165,12 @@ export const LeaveTypeTable = pgTable(
     ...CommonRows,
   },
   (t) => [
-    // Unique Name per org (case-insensitive)
+    // Keep: Unique Name per org (case-insensitive)
     uniqueIndex("uq_leave_type_name_org").on(
       sql`lower(${t.name})`,
       t.organizationId
     ),
-    // Unique Short Code per org (case-insensitive)
-    uniqueIndex("uq_leave_type_code_org").on(
-      sql`lower(${t.shortCode})`,
-      t.organizationId
-    ),
-    // Ensure positive limit days
+    // Keep: Ensure positive limit days
     check("chk_limit_days_positive", sql`
       (limit_days IS NULL OR limit_days > 0)
     `),

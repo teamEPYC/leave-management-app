@@ -7,6 +7,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "~/components/ui/badge";
 import { UserStatusBadge } from "~/components/shared/user-status-badge";
 import { DataTable } from "~/components/ui/data-table";
+import { GroupDetailsSheet } from "~/components/groupsManagement/group-details-sheet";
+import { se } from "date-fns/locale";
 
 export type Group = {
   id: number;
@@ -107,6 +109,11 @@ export default function GroupsManagementPage() {
   const [open, setOpen] = React.useState(false);
   const [selectedGroup, setSelectedGroup] = React.useState<Group | null>(null);
 
+  const handleRowClick = (group: Group) => {
+    setSelectedGroup(group);
+    setOpen(true);
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -124,7 +131,12 @@ export default function GroupsManagementPage() {
         columns={groupColumns}
         data={mockGroups}
         searchKey="groupName"
-        // onRowClick={handleRowClick}
+        onRowClick={handleRowClick}
+      />
+      <GroupDetailsSheet
+        group={selectedGroup}
+        open={open}
+        onOpenChange={setOpen}
       />
     </div>
   );

@@ -45,18 +45,21 @@ organizationEndpoint.openapi(
             const apiKey = c.req.valid("header")["x-api-key"];
             const body = c.req.valid("json");
 
-            const result = await createOrganizationAsOwner({
+            const createOrganizationRes = await createOrganizationAsOwner({
                 db,
                 env,
                 apiKey,
                 input: body,
             });
 
-            if (!result.ok) {
-                return c.json(result, result.status ?? 400);
+            if (!createOrganizationRes.ok) {
+                return c.json(createOrganizationRes, 400);
             }
 
-            return c.json(result, 200);
+            return c.json(
+                { ok: true, data: { organizationId: createOrganizationRes.data?.organizationId } } as const,
+                200
+            );
         } catch (err) {
             return handleApiErrors(c, err);
         }
@@ -102,7 +105,7 @@ organizationEndpoint.openapi(
             const orgId = c.req.valid("param").id;
             const body = c.req.valid("json");
 
-            const result = await updateOrganization({
+            const updateOrganizationRes = await updateOrganization({
                 db,
                 env: c.env,
                 apiKey,
@@ -110,7 +113,14 @@ organizationEndpoint.openapi(
                 input: body,
             });
 
-            return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!updateOrganizationRes.ok) {
+                return c.json(updateOrganizationRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { organizationId: updateOrganizationRes.data?.organizationId } } as const,
+                200
+            );
         } catch (err) {
             return handleApiErrors(c, err);
         }
@@ -147,14 +157,21 @@ organizationEndpoint.openapi(
             const apiKey = c.req.valid("header")["x-api-key"];
             const orgId = c.req.valid("param").id;
 
-            const result = await deactivateOrganization({
+            const deactivateOrganizationRes = await deactivateOrganization({
                 db,
                 env: c.env,
                 apiKey,
                 organizationId: orgId,
             });
 
-            return c.json(result, result.ok ? 200 : result.httpStatus ?? 400);
+            if (!deactivateOrganizationRes.ok) {
+                return c.json(deactivateOrganizationRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { organizationId: deactivateOrganizationRes.data?.organizationId, deactivatedAt: deactivateOrganizationRes.data?.deactivatedAt } } as const,
+                200
+            );
         } catch (err) {
             return handleApiErrors(c, err);
         }
@@ -193,9 +210,17 @@ organizationEndpoint.openapi({
         const db = connectDb({ env: c.env });
         const { email } = c.req.valid("query");
 
-        const result = await getOrganizationList({ db, email });
+        const getOrganizationListRes = await getOrganizationList({ db, email });
 
-        return c.json({ ok: true, data: result }, 200);
+        if (!getOrganizationListRes.ok) {
+            return c.json(getOrganizationListRes, 400);
+        }
+
+        return c.json(
+            { ok: true, data: getOrganizationListRes.data.organizations } as const,
+            200
+        );
+
     } catch (err) {
         return handleApiErrors(c, err);
     }
@@ -239,7 +264,7 @@ organizationEndpoint.openapi(
             const { orgId } = c.req.valid("param");
             const body = c.req.valid("json");
 
-            const result = await inviteUserToOrg({
+            const inviteUserToOrgRes = await inviteUserToOrg({
                 db,
                 env: c.env,
                 apiKey,
@@ -247,7 +272,14 @@ organizationEndpoint.openapi(
                 input: body,
             });
 
-            return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!inviteUserToOrgRes.ok) {
+                return c.json(inviteUserToOrgRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { invitationId: inviteUserToOrgRes.data?.invitationId, expiresAt: inviteUserToOrgRes.data?.expiresAt } } as const,
+                200
+            );
         } catch (err) {
             return handleApiErrors(c, err);
         }
@@ -286,19 +318,30 @@ organizationEndpoint.openapi(
         },
     },
     async (c) => {
-        const db = connectDb({ env: c.env });
-        const apiKey = c.req.valid("header")["x-api-key"];
-        const { orgId } = c.req.valid("param");
-        const { invitationId } = c.req.valid("json");
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const { orgId } = c.req.valid("param");
+            const { invitationId } = c.req.valid("json");
 
-        const result = await joinOrganization({
-            db,
-            env: c.env,
-            apiKey,
-            organizationId: orgId,
-            invitationId,
-        });
+            const joinOrganizationRes = await joinOrganization({
+                db,
+                env: c.env,
+                apiKey,
+                organizationId: orgId,
+                invitationId,
+            });
 
-        return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!joinOrganizationRes.ok) {
+                return c.json(joinOrganizationRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: joinOrganizationRes.data } as const,
+                200
+            );
+        } catch (err) {
+            return handleApiErrors(c, err);
+        }
     }
 );

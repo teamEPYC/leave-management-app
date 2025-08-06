@@ -24,5 +24,11 @@ export async function getOrganizationList({
             )
         );
 
-    return organizations;
+
+    return {
+        ok: true,
+        data: {
+            organizations,
+        },
+    } as const;
 }

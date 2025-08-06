@@ -1,5 +1,6 @@
-import { pgTable, text, uuid, timestamp, boolean, json, uniqueIndex, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, boolean, json, uniqueIndex, pgEnum, numeric } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { check } from "drizzle-orm/gel-core";
 
 // ─────────────────────────────────────────────────────────────
 // Shared fields
@@ -17,6 +18,8 @@ export const CommonRows = {
 // Enums
 
 export const invitationStatusEnum = pgEnum("invitation_status", ["SENT", "ACCEPT"]);
+export const employeeTypeEnum = pgEnum("employee_type", ["FULL_TIME", "PART_TIME"]);
+export const leaveLimitTypeEnum = pgEnum("leave_limit_type", ["YEAR", "QUARTER", "MONTH"]);
 
 // ─────────────────────────────────────────────────────────────
 // Users
@@ -31,6 +34,7 @@ export const UserTable = pgTable("users", {
   phone: text(),
   roleId: uuid("role_id").notNull().references(() => RoleTable.id),
   organizationId: uuid("organization_id").references(() => OrganizationTable.id),
+  employeeType: employeeTypeEnum("employee_type").notNull().default("FULL_TIME"),
   ...CommonRows,
 }, (t) => [
   uniqueIndex("user_email_key").on(t.email).where(sql`${t.isActive}`),
@@ -138,3 +142,58 @@ export const GroupUserTable = pgTable("group_users", {
   ...CommonRows,
 });
 
+
+// ─────────────────────────────────────────────────────────────
+// LeaveTypeTable 
+
+export const LeaveTypeTable = pgTable(
+  "leave_types",
+  {
+    id: uuid("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => OrganizationTable.id),
+    name: text("name").notNull(),
+    shortCode: text("short_code").notNull(),
+    icon: text("icon"),
+    description: text("description"),
+    isLimited: boolean("is_limited").notNull().default(true),
+    limitType: leaveLimitTypeEnum("limit_type"), // YEAR / QUARTER / MONTH
+    limitDays: numeric("limit_days", { precision: 5, scale: 2 }), // e.g., 12.5
+    appliesToEveryone: boolean("applies_to_everyone").notNull().default(true),
+    employeeType: employeeTypeEnum("employee_type").notNull().default("FULL_TIME"),
+    ...CommonRows,
+  },
+  (t) => [
+    // Keep: Unique Name per org (case-insensitive)
+    uniqueIndex("uq_leave_type_name_org").on(
+      sql`lower(${t.name})`,
+      t.organizationId
+    ),
+    // Keep: Ensure positive limit days
+    check("chk_limit_days_positive", sql`
+      (limit_days IS NULL OR limit_days > 0)
+    `),
+  ]
+);
+
+
+// ─────────────────────────────────────────────────────────────
+// LeaveTypeGroupTable
+
+export const LeaveTypeGroupTable = pgTable(
+  "leave_type_groups",
+  {
+    id: uuid("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    leaveTypeId: uuid("leave_type_id")
+      .notNull()
+      .references(() => LeaveTypeTable.id),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => GroupTable.id),
+    ...CommonRows,
+  },
+  (t) => [
+    uniqueIndex("uq_leave_type_group").on(t.leaveTypeId, t.groupId),
+  ]
+);

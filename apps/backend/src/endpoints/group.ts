@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createGroup } from "../features/groups/create";
 import { deactivateGroup, editGroup } from "../features/groups/update";
 import { listGroupsForCurrentOrg } from "../features/groups/get";
+import { handleApiErrors } from "../utils/error";
 
 export const groupEndpoint = getHono();
 
@@ -41,16 +42,27 @@ groupEndpoint.openapi(
         },
     },
     async (c) => {
-        const db = connectDb({ env: c.env });
-        const apiKey = c.req.valid("header")["x-api-key"];
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
 
-        const result = await listGroupsForCurrentOrg({
-            db,
-            env: c.env,
-            apiKey,
-        });
+            const listGroupsForCurrentOrgRes = await listGroupsForCurrentOrg({
+                db,
+                env: c.env,
+                apiKey,
+            });
 
-        return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!listGroupsForCurrentOrgRes.ok) {
+                return c.json(listGroupsForCurrentOrgRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: listGroupsForCurrentOrgRes.data } as const,
+                200
+            );
+        } catch (error) {
+            return handleApiErrors(c, error);
+        }
     }
 );
 
@@ -83,18 +95,29 @@ groupEndpoint.openapi(
         },
     },
     async (c) => {
-        const db = connectDb({ env: c.env });
-        const apiKey = c.req.valid("header")["x-api-key"];
-        const body = c.req.valid("json");
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const body = c.req.valid("json");
 
-        const result = await createGroup({
-            db,
-            env: c.env,
-            apiKey,
-            input: body,
-        });
+            const createGroupRes = await createGroup({
+                db,
+                env: c.env,
+                apiKey,
+                input: body,
+            });
 
-        return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!createGroupRes.ok) {
+                return c.json(createGroupRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { groupId: createGroupRes.data?.groupId } } as const,
+                200
+            );
+        } catch (error) {
+            return handleApiErrors(c, error);
+        }
     }
 );
 
@@ -133,20 +156,31 @@ groupEndpoint.openapi(
         },
     },
     async (c) => {
-        const db = connectDb({ env: c.env });
-        const apiKey = c.req.valid("header")["x-api-key"];
-        const { groupId } = c.req.valid("param");
-        const body = c.req.valid("json");
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const { groupId } = c.req.valid("param");
+            const body = c.req.valid("json");
 
-        const result = await editGroup({
-            db,
-            env: c.env,
-            apiKey,
-            groupId,
-            input: body,
-        });
+            const editGroupRes = await editGroup({
+                db,
+                env: c.env,
+                apiKey,
+                groupId,
+                input: body,
+            });
 
-        return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!editGroupRes.ok) {
+                return c.json(editGroupRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { groupId: editGroupRes.data?.groupId } } as const,
+                200
+            );
+        } catch (error) {
+            return handleApiErrors(c, error);
+        }
     }
 );
 
@@ -175,18 +209,29 @@ groupEndpoint.openapi(
         },
     },
     async (c) => {
-        const db = connectDb({ env: c.env });
-        const apiKey = c.req.valid("header")["x-api-key"];
-        const { groupId } = c.req.valid("param");
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const { groupId } = c.req.valid("param");
 
-        const result = await deactivateGroup({
-            db,
-            env: c.env,
-            apiKey,
-            groupId,
-        });
+            const deactivateGroupRes = await deactivateGroup({
+                db,
+                env: c.env,
+                apiKey,
+                groupId,
+            });
 
-        return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!deactivateGroupRes.ok) {
+                return c.json(deactivateGroupRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { groupId: deactivateGroupRes.data?.groupId } } as const,
+                200
+            );
+        } catch (error) {
+            return handleApiErrors(c, error);
+        }
     }
 );
 

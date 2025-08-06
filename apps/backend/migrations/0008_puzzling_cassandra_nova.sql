@@ -1,0 +1,1 @@
+DROP INDEX "uq_leave_type_code_org";

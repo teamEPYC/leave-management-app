@@ -18,6 +18,8 @@ export const ErrorCodes = {
   ALREADY_EXISTS: "ALREADY_EXISTS",
   INVALID_USER: "INVALID_USER",
   NOT_FOUND: "NOT_FOUND",
+  INVALID_REQUEST: "INVALID_REQUEST",
+  DB_ERROR: "DB_ERROR",
 } as const;
 
 export type ErrorCodes = (typeof ErrorCodes)[keyof typeof ErrorCodes];

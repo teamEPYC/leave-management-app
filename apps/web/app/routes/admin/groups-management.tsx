@@ -17,27 +17,20 @@ export type Group = {
 };
 
 function renderLimitedList(items: string[]) {
-  if (!items || items.length === 0) return null;
+  if (!items?.length) return null;
 
   const COLORS = [
-    "#EF4444", // red-500
-    "#F59E0B", // amber-500
-    "#10B981", // emerald-500
-    "#3B82F6", // blue-500
-    "#8B5CF6", // violet-500
-    "#14B8A6", // teal-500
-    "#EC4899", // pink-500
-    "#6366F1", // indigo-500
+    "#EF4444",
+    "#F59E0B",
+    "#10B981",
+    "#3B82F6",
+    "#8B5CF6",
+    "#14B8A6",
+    "#EC4899",
+    "#6366F1",
   ];
 
-  const stringToColor = (name: string) => {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const index = Math.abs(hash) % COLORS.length;
-    return COLORS[index];
-  };
+  const randomColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
 
   const displayItems = items.slice(0, 2);
   const extraCount = items.length - displayItems.length;
@@ -47,23 +40,20 @@ function renderLimitedList(items: string[]) {
       {displayItems.map((item, index) => (
         <div
           key={item}
-          className={`flex shadow rounded-full size-8 font-semibold text-white ${
+          className={`flex rounded-full size-8 font-semibold text-white shadow-sm ring-2 ring-background ${
             index > 0 ? "-ml-2" : ""
           }`}
-          style={{ backgroundColor: stringToColor(item) }}
+          style={{ backgroundColor: randomColor() }}
         >
-          <div className="m-auto">
+          <span className="m-auto text-xs">
             {item[0]?.toUpperCase() + (item[1] || "").toUpperCase()}
-          </div>
+          </span>
         </div>
       ))}
       {extraCount > 0 && (
-        <Badge
-          className="-ml-2 bg-background rounded-full size-8 flex items-center justify-center"
-          variant="outline"
-        >
+        <div className="-ml-2 flex items-center justify-center rounded-full size-8 bg-muted text-muted-foreground text-xs font-medium ring-2 ring-background">
           +{extraCount}
-        </Badge>
+        </div>
       )}
     </div>
   );

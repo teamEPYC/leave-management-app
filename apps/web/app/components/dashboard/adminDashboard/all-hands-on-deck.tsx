@@ -90,7 +90,7 @@ export default function AllHandsOnDeck() {
                     !startDate && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 size-4" />
                   {startDate ? format(startDate, "PPP") : "Pick a start date"}
                 </Button>
               </PopoverTrigger>
@@ -116,7 +116,7 @@ export default function AllHandsOnDeck() {
                     !endDate && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 size-4" />
                   {endDate ? format(endDate, "PPP") : "Pick an end date"}
                 </Button>
               </PopoverTrigger>

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createLeaveType } from "../features/leave-types/create";
 import { listLeaveTypes } from "../features/leave-types/list";
 import { deactivateLeaveType, updateLeaveType } from "../features/leave-types/update";
+import { handleApiErrors } from "../utils/error";
 
 export const leaveTypeEndpoint = getHono();
 
@@ -45,18 +46,29 @@ leaveTypeEndpoint.openapi(
         },
     },
     async (c) => {
-        const db = connectDb({ env: c.env });
-        const apiKey = c.req.valid("header")["x-api-key"];
-        const body = c.req.valid("json");
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const body = c.req.valid("json");
 
-        const result = await createLeaveType({
-            db,
-            env: c.env,
-            apiKey,
-            input: body,
-        });
+            const saveLeaveTypeRes = await createLeaveType({
+                db,
+                env: c.env,
+                apiKey,
+                input: body,
+            });
 
-        return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!saveLeaveTypeRes.ok) {
+                return c.json(saveLeaveTypeRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { leaveTypeId: saveLeaveTypeRes.data?.leaveTypeId } } as const,
+                200
+            );
+        } catch (error) {
+            return handleApiErrors(c, error);
+        }
     }
 );
 
@@ -105,18 +117,29 @@ leaveTypeEndpoint.openapi(
         },
     },
     async (c) => {
-        const db = connectDb({ env: c.env });
-        const apiKey = c.req.valid("header")["x-api-key"];
-        const query = c.req.valid("query");
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const query = c.req.valid("query");
 
-        const result = await listLeaveTypes({
-            db,
-            env: c.env,
-            apiKey,
-            input: { organizationId: query.organizationId },
-        });
+            const listLeaveTypesRes = await listLeaveTypes({
+                db,
+                env: c.env,
+                apiKey,
+                input: { organizationId: query.organizationId },
+            });
 
-        return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!listLeaveTypesRes.ok) {
+                return c.json(listLeaveTypesRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: listLeaveTypesRes.data } as const,
+                200
+            );
+        } catch (error) {
+            return handleApiErrors(c, error);
+        }
     }
 );
 
@@ -163,22 +186,33 @@ leaveTypeEndpoint.openapi(
         },
     },
     async (c) => {
-        const db = connectDb({ env: c.env });
-        const apiKey = c.req.valid("header")["x-api-key"];
-        const params = c.req.valid("param");
-        const body = c.req.valid("json");
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const params = c.req.valid("param");
+            const body = c.req.valid("json");
 
-        const result = await updateLeaveType({
-            db,
-            env: c.env,
-            apiKey,
-            input: {
-                leaveTypeId: params.leaveTypeId,
-                ...body,
-            },
-        });
+            const updateLeaveTypeRes = await updateLeaveType({
+                db,
+                env: c.env,
+                apiKey,
+                input: {
+                    leaveTypeId: params.leaveTypeId,
+                    ...body,
+                },
+            });
 
-        return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!updateLeaveTypeRes.ok) {
+                return c.json(updateLeaveTypeRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { leaveTypeId: updateLeaveTypeRes.data?.leaveTypeId } } as const,
+                200
+            );
+        } catch (error) {
+            return handleApiErrors(c, error);
+        }
     }
 );
 
@@ -212,21 +246,32 @@ leaveTypeEndpoint.openapi(
         },
     },
     async (c) => {
-        const db = connectDb({ env: c.env });
-        const apiKey = c.req.valid("header")["x-api-key"];
-        const params = c.req.valid("param");
-        const query = c.req.valid("query");
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const params = c.req.valid("param");
+            const query = c.req.valid("query");
 
-        const result = await deactivateLeaveType({
-            db,
-            env: c.env,
-            apiKey,
-            input: {
-                leaveTypeId: params.leaveTypeId,
-                organizationId: query.organizationId,
-            },
-        });
+            const deactivateLeaveTypeRes = await deactivateLeaveType({
+                db,
+                env: c.env,
+                apiKey,
+                input: {
+                    leaveTypeId: params.leaveTypeId,
+                    organizationId: query.organizationId,
+                },
+            });
 
-        return c.json(result, result.ok ? 200 : result.status ?? 400);
+            if (!deactivateLeaveTypeRes.ok) {
+                return c.json(deactivateLeaveTypeRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { leaveTypeId: deactivateLeaveTypeRes.data?.leaveTypeId } } as const,
+                200
+            );
+        } catch (error) {
+            return handleApiErrors(c, error);
+        }
     }
 );

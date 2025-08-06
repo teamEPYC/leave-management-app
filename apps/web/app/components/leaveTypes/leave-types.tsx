@@ -73,7 +73,8 @@ export function LeaveTypeOverview() {
           </div>
           <DialogTrigger asChild>
             <Button variant="default" size="sm" className="rounded">
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Leave Type
+              <PlusCircle className="h-4 w-4" />{" "}
+              <div className="hidden lg:block ml-2">Add Leave Type</div>
             </Button>
           </DialogTrigger>
         </CardHeader>
@@ -106,7 +107,7 @@ export function LeaveTypeOverview() {
         <div className="space-y-4 py-2 grid gap-4 grid-cols-2">
           {/* Placeholder for the form inputs */}
 
-          <div className="space-y-2 col-span-1">
+          <div className="space-y-2 col-span-2 md:col-span-1">
             <Label>Leave Name</Label>
             <input
               type="text"
@@ -170,7 +171,7 @@ export function LeaveTypeOverview() {
           <div className="mt-3 col-span-1 flex flex-col gap-3">
             <Label>Status</Label>
             <div className="flex gap-2">
-              <Switch id="airplane-mode"  />
+              <Switch id="airplane-mode" />
               <Label htmlFor="airplane-mode">Active</Label>
             </div>
           </div>

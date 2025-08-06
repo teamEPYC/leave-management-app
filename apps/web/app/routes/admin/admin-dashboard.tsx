@@ -29,6 +29,7 @@ import { RecentLeaveRequest } from "~/components/dashboard/recentLeaves/recent-l
 import { LeaveHistoryItem } from "~/components/myLeaves/LeaveHistoryItem";
 import { LeaveTypeOverview } from "~/components/leaveTypes/leave-types";
 import { DashboardStatCard } from "~/components/dashboard/dashboard-stat-card";
+import { QuickActionsCard } from "~/components/dashboard/adminDashboard/QuickActionsCard";
 
 // mock data
 const recentLeaves = [
@@ -168,56 +169,7 @@ export default function AdminDashboard() {
           ))}
         </Card>
         {/* will move this somewhere else */}
-        <Card className="col-span-6 rounded border-0">
-          <CardHeader className="border-b border-muted">
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Perform actions related to users and approvals.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 rounded">
-            {[
-              {
-                Icon: <UserPlus size={28} />,
-                label: "Add New User",
-                desc: "Register a new team member",
-              },
-              {
-                Icon: <Plane size={28} />,
-                label: "Create Leave Type",
-                desc: "Define new leave categories",
-              },
-              {
-                Icon: <ArrowDownFromLineIcon size={28} />,
-                label: "Manage Approval Groups",
-                desc: "Set group-level leave policies",
-              },
-              {
-                Icon: <CircleAlert size={28} />,
-                label: "Schedule All-Hands",
-                desc: "Plan upcoming team meetings",
-              },
-              {
-                Icon: <ClipboardPlus size={28} />,
-                label: "Export Reports",
-                desc: "Download leave data reports",
-              },
-            ].map((item, idx) => (
-              <button
-                key={idx}
-                className="w-full text-left p-3 rounded border-0 hover:bg-accent transition-colors"
-              >
-                <div className="flex justify-start items-center gap-2">
-                  <div className="rounded-full p-3 bg-muted">{item.Icon}</div>
-                  <div className="flex flex-col">
-                    <p className="font-medium">{item.label}</p>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </CardContent>
-        </Card>
+        <QuickActionsCard />
       </div>
     </div>
   );

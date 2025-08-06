@@ -33,7 +33,6 @@ export const UserTable = pgTable("users", {
   email: text().notNull(),
   phone: text(),
   employeeType: employeeTypeEnum("employee_type").notNull().default("FULL_TIME"),
-  fullTimeStartDate: timestamp({ withTimezone: true }),
   ...CommonRows,
 }, (t) => [
   uniqueIndex("user_email_key").on(t.email).where(sql`${t.isActive}`),
@@ -160,7 +159,6 @@ export const LeaveTypeTable = pgTable(
     isLimited: boolean("is_limited").notNull().default(true),
     limitType: leaveLimitTypeEnum("limit_type"), // YEAR / QUARTER / MONTH
     limitDays: numeric("limit_days", { precision: 5, scale: 2 }), // e.g., 12.5
-    appliesToEveryone: boolean("applies_to_everyone").notNull().default(true),
     employeeType: employeeTypeEnum("employee_type").notNull().default("FULL_TIME"),
     ...CommonRows,
   },

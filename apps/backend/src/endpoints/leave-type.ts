@@ -28,7 +28,6 @@ leaveTypeEndpoint.openapi(
                     isLimited: z.boolean(),
                     limitType: z.enum(["YEAR", "QUARTER", "MONTH"]).optional(),
                     limitDays: z.number().positive().optional(),
-                    appliesToEveryone: z.boolean(),
                     groupIds: z.array(z.string().uuid()).optional(),
                     employeeType: z.enum(["FULL_TIME", "PART_TIME"]),
                 })
@@ -101,7 +100,6 @@ leaveTypeEndpoint.openapi(
                             isLimited: z.boolean(),
                             limitType: z.enum(["YEAR", "QUARTER", "MONTH"]).nullable(),
                             limitDays: z.string().nullable(), // numeric is returned as string by pg
-                            appliesToEveryone: z.boolean(),
                             employeeType: z.enum(["FULL_TIME", "PART_TIME"]),
                             groups: z.array(
                                 z.object({
@@ -168,7 +166,6 @@ leaveTypeEndpoint.openapi(
                     isLimited: z.boolean(),
                     limitType: z.enum(["YEAR", "QUARTER", "MONTH"]).optional(),
                     limitDays: z.number().positive().optional(),
-                    appliesToEveryone: z.boolean(),
                     employeeType: z.enum(["FULL_TIME", "PART_TIME"]),
                     groupIds: z.array(z.string().uuid()).optional(),
                 })

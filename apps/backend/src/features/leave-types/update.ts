@@ -16,7 +16,6 @@ type UpdateLeaveTypeInput = {
     isLimited: boolean;
     limitType?: "YEAR" | "QUARTER" | "MONTH";
     limitDays?: number;
-    appliesToEveryone: boolean;
     employeeType: "FULL_TIME" | "PART_TIME";
     groupIds?: string[];
 };
@@ -104,8 +103,13 @@ export async function updateLeaveType({
     const orgRes = await checkOrganizationIsActive({ db, organizationId: input.organizationId });
     if (!orgRes.ok) return orgRes;
 
-    const activeCheck = await validateLeaveTypeActive({ db, leaveTypeId: input.leaveTypeId, organizationId: input.organizationId });
+    const activeCheck = await validateLeaveTypeActive({
+        db,
+        leaveTypeId: input.leaveTypeId,
+        organizationId: input.organizationId,
+    });
     if (!activeCheck.ok) return activeCheck;
+
     const currentRecord = activeCheck.record;
 
     if (currentRecord.organizationId !== input.organizationId) {
@@ -139,6 +143,7 @@ export async function updateLeaveType({
     });
     if (!nameCheck.ok) return nameCheck;
 
+    // --- Update main leave type record ---
     await db
         .update(LeaveTypeTable)
         .set({
@@ -147,47 +152,57 @@ export async function updateLeaveType({
             icon: input.icon,
             description: input.description,
             isLimited: input.isLimited,
-            limitType: input.limitType ? input.limitType : null,
+            limitType: input.limitType ?? null,
             limitDays: input.limitDays ? String(input.limitDays) : null,
-            appliesToEveryone: input.appliesToEveryone,
             employeeType: input.employeeType,
             updatedAt: new Date(),
         })
         .where(eq(LeaveTypeTable.id, input.leaveTypeId));
 
-    if (input.appliesToEveryone) {
-        await db.delete(LeaveTypeGroupTable).where(eq(LeaveTypeGroupTable.leaveTypeId, input.leaveTypeId));
+    // --- Group management ---
+    const existingGroups = await db
+        .select({ groupId: LeaveTypeGroupTable.groupId })
+        .from(LeaveTypeGroupTable)
+        .where(eq(LeaveTypeGroupTable.leaveTypeId, input.leaveTypeId));
+
+    const existingIds = new Set(existingGroups.map(g => g.groupId));
+    const newIds = new Set(input.groupIds || []);
+
+    if (!input.groupIds?.length) {
+        // No groups in input → remove all if any exist
+        if (existingIds.size > 0) {
+            await db
+                .delete(LeaveTypeGroupTable)
+                .where(eq(LeaveTypeGroupTable.leaveTypeId, input.leaveTypeId));
+        }
     } else {
-        const newGroupIds = [...new Set(input.groupIds || [])];
-
-        const existingGroups = await db
-            .select({ groupId: LeaveTypeGroupTable.groupId })
-            .from(LeaveTypeGroupTable)
-            .where(eq(LeaveTypeGroupTable.leaveTypeId, input.leaveTypeId));
-
-        const existingIds = new Set(existingGroups.map((g) => g.groupId));
-        const newIdsSet = new Set(newGroupIds);
-
-        const isDifferent =
-            existingIds.size !== newIdsSet.size ||
-            [...existingIds].some((id) => !newIdsSet.has(id));
-
-        if (isDifferent) {
-            await db.delete(LeaveTypeGroupTable).where(eq(LeaveTypeGroupTable.leaveTypeId, input.leaveTypeId));
-            if (newGroupIds.length > 0) {
-                await db.insert(LeaveTypeGroupTable).values(
-                    newGroupIds.map((gid) => ({
-                        leaveTypeId: input.leaveTypeId,
-                        groupId: gid,
-                    }))
+        // Determine removals
+        const toRemove = [...existingIds].filter(id => !newIds.has(id));
+        if (toRemove.length > 0) {
+            await db
+                .delete(LeaveTypeGroupTable)
+                .where(
+                    and(
+                        eq(LeaveTypeGroupTable.leaveTypeId, input.leaveTypeId),
+                        sql`${LeaveTypeGroupTable.groupId} = ANY(${toRemove})`
+                    )
                 );
-            }
+        }
+
+        // Determine additions
+        const toAdd = [...newIds].filter(id => !existingIds.has(id));
+        if (toAdd.length > 0) {
+            await db.insert(LeaveTypeGroupTable).values(
+                toAdd.map(gid => ({
+                    leaveTypeId: input.leaveTypeId,
+                    groupId: gid,
+                }))
+            );
         }
     }
+
     return { ok: true, data: { leaveTypeId: input.leaveTypeId } } as const;
 }
-
-
 
 
 

@@ -15,7 +15,6 @@ export type CreateLeaveTypeInput = {
     isLimited: boolean;
     limitType: "YEAR" | "QUARTER" | "MONTH" | null;
     limitDays: number | null;
-    appliesToEveryone: boolean;
     employeeType: "FULL_TIME" | "PART_TIME";
     groupIds: string[] | null;
 }
@@ -97,12 +96,11 @@ export async function createLeaveType({
                 isLimited: input.isLimited,
                 limitType: input.limitType ? input.limitType : null,
                 limitDays: input.limitDays ? String(input.limitDays) : null,
-                appliesToEveryone: input.appliesToEveryone,
                 employeeType: input.employeeType,
             })
             .returning();
 
-        if (!input.appliesToEveryone && input.groupIds?.length) {
+        if (input.groupIds?.length) {
             const groupRows = input.groupIds.map((gid) => ({
                 leaveTypeId: leaveType.id,
                 groupId: gid,

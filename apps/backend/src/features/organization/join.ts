@@ -69,8 +69,6 @@ export async function joinOrganization({
             .update(UserTable)
             .set({
                 employeeType: invite.employeeType,
-                fullTimeStartDate:
-                    invite.employeeType === "FULL_TIME" ? new Date() : null,
                 updatedAt: new Date(),
             })
             .where(eq(UserTable.id, user.id));

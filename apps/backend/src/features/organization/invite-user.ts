@@ -101,6 +101,7 @@ export async function inviteUserToOrg({
             status: "SENT",
             expiresAt,
             roleId,
+            groups: input.groups,
         })
         .returning();
 

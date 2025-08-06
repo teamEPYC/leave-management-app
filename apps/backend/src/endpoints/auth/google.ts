@@ -105,7 +105,6 @@ googleAuthRoutes.get("/callback", async (c) => {
           name,
           email,
           image: picture,
-          roleId: employeeRole[0].id,
         })
         .returning();
 

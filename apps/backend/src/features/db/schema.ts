@@ -32,9 +32,8 @@ export const UserTable = pgTable("users", {
   image: text(),
   email: text().notNull(),
   phone: text(),
-  roleId: uuid("role_id").notNull().references(() => RoleTable.id),
-  organizationId: uuid("organization_id").references(() => OrganizationTable.id),
   employeeType: employeeTypeEnum("employee_type").notNull().default("FULL_TIME"),
+  fullTimeStartDate: timestamp({ withTimezone: true }),
   ...CommonRows,
 }, (t) => [
   uniqueIndex("user_email_key").on(t.email).where(sql`${t.isActive}`),
@@ -65,8 +64,7 @@ export const OrganizationTable = pgTable("organizations", {
   description: text(),
   icon: text(),
   domain: text().notNull(),
-  setting: json("setting").notNull().default({}),
-  createdBy: uuid("created_by").notNull().references(() => UserTable.id),
+  setting: json("setting").default([]),
   ...CommonRows,
 });
 
@@ -82,6 +80,8 @@ export const InvitationTable = pgTable("invitations", {
   roleId: uuid("role_id").notNull().references(() => RoleTable.id),
   status: invitationStatusEnum("status").notNull().default("SENT"),
   expiresAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  employeeType: employeeTypeEnum("employee_type").notNull().default("FULL_TIME"),
+  groups: json("groups").default([]),
   ...CommonRows,
 });
 

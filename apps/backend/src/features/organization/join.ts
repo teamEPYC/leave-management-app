@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { InvitationTable, UserOrganizationTable } from "../db/schema";
+import { GroupUserTable, InvitationTable, UserOrganizationTable, UserTable } from "../db/schema";
 import { getUserFromApiKey } from "../auth/auth";
 import { ErrorCodes } from "../../utils/error";
 import { WithDbAndEnv } from "../../utils/commonTypes";
@@ -63,6 +63,28 @@ export async function joinOrganization({
             roleId: invite.roleId,
             isOwner: false,
         });
+
+        // Set employeeType in users table
+        await db
+            .update(UserTable)
+            .set({
+                employeeType: invite.employeeType,
+                fullTimeStartDate:
+                    invite.employeeType === "FULL_TIME" ? new Date() : null,
+                updatedAt: new Date(),
+            })
+            .where(eq(UserTable.id, user.id));
+
+        // Add to groups if invite has them
+        if (invite.groups && Array.isArray(invite.groups) && invite.groups.length > 0) {
+            const groupRows = invite.groups.map((gid: string) => ({
+                groupId: gid,
+                userId: user.id,
+                isApprovalManager: false,
+                addedBy: user.id, // or inviter's id
+            }));
+            await db.insert(GroupUserTable).values(groupRows);
+        }
 
         // Mark invitation as accepted
         await db

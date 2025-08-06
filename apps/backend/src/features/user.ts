@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { WithDb } from "../utils/commonTypes";
-import { InvitationTable, RoleTable, UserOrganizationTable, UserTable } from "./db/schema";
+import { InvitationTable, OrganizationTable, RoleTable, UserOrganizationTable, UserTable } from "./db/schema";
 import { and, eq, gt } from "drizzle-orm";
 import { ErrorCodes } from "../utils/error";
 
@@ -42,9 +42,7 @@ export async function createUser({
     .insert(UserTable)
     .values({
       email,
-      name,
-      roleId: null,
-      organizationId: null,
+      name
     })
     .onConflictDoNothing({
       target: [UserTable.email],
@@ -237,4 +235,77 @@ export async function isUserAlreadyInOrganization({
   });
 
   return hasAccess;
+}
+
+
+
+
+
+
+
+export async function getUserWithOrganization({
+  userId,
+  db,
+}: WithDb<{ userId: string }>) {
+  const result = await db
+    .select({
+      id: UserTable.id,
+      email: UserTable.email,
+      name: UserTable.name,
+      image: UserTable.image,
+      phone: UserTable.phone,
+      employeeType: UserTable.employeeType,
+      organizationId: UserOrganizationTable.organizationId,
+      roleId: UserOrganizationTable.roleId,
+      isOwner: UserOrganizationTable.isOwner,
+    })
+    .from(UserTable)
+    .leftJoin(UserOrganizationTable, eq(UserTable.id, UserOrganizationTable.userId))
+    .where(eq(UserTable.id, userId))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+
+export async function getOrganizationCreator({
+  organizationId,
+  db,
+}: WithDb<{ organizationId: string }>) {
+  const result = await db
+    .select({
+      id: UserTable.id,
+      email: UserTable.email,
+      name: UserTable.name,
+      image: UserTable.image,
+    })
+    .from(UserOrganizationTable)
+    .innerJoin(UserTable, eq(UserOrganizationTable.userId, UserTable.id))
+    .where(
+      and(
+        eq(UserOrganizationTable.organizationId, organizationId),
+        eq(UserOrganizationTable.isOwner, true)
+      )
+    )
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+
+export async function getUserOrganizations({
+  userId,
+  db,
+}: WithDb<{ userId: string }>) {
+  return db
+    .select({
+      organizationId: UserOrganizationTable.organizationId,
+      roleId: UserOrganizationTable.roleId,
+      isOwner: UserOrganizationTable.isOwner,
+      organizationName: OrganizationTable.name,
+      organizationDomain: OrganizationTable.domain,
+    })
+    .from(UserOrganizationTable)
+    .innerJoin(OrganizationTable, eq(UserOrganizationTable.organizationId, OrganizationTable.id))
+    .where(eq(UserOrganizationTable.userId, userId));
 }

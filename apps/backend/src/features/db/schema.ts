@@ -32,8 +32,6 @@ export const UserTable = pgTable("users", {
   image: text(),
   email: text().notNull(),
   phone: text(),
-  roleId: uuid("role_id").notNull().references(() => RoleTable.id),
-  organizationId: uuid("organization_id").references(() => OrganizationTable.id),
   employeeType: employeeTypeEnum("employee_type").notNull().default("FULL_TIME"),
   ...CommonRows,
 }, (t) => [
@@ -65,8 +63,7 @@ export const OrganizationTable = pgTable("organizations", {
   description: text(),
   icon: text(),
   domain: text().notNull(),
-  setting: json("setting").notNull().default({}),
-  createdBy: uuid("created_by").notNull().references(() => UserTable.id),
+  setting: json("setting").default([]),
   ...CommonRows,
 });
 
@@ -82,6 +79,8 @@ export const InvitationTable = pgTable("invitations", {
   roleId: uuid("role_id").notNull().references(() => RoleTable.id),
   status: invitationStatusEnum("status").notNull().default("SENT"),
   expiresAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  employeeType: employeeTypeEnum("employee_type").notNull().default("FULL_TIME"),
+  groups: json("groups").default([]),
   ...CommonRows,
 });
 
@@ -160,7 +159,6 @@ export const LeaveTypeTable = pgTable(
     isLimited: boolean("is_limited").notNull().default(true),
     limitType: leaveLimitTypeEnum("limit_type"), // YEAR / QUARTER / MONTH
     limitDays: numeric("limit_days", { precision: 5, scale: 2 }), // e.g., 12.5
-    appliesToEveryone: boolean("applies_to_everyone").notNull().default(true),
     employeeType: employeeTypeEnum("employee_type").notNull().default("FULL_TIME"),
     ...CommonRows,
   },

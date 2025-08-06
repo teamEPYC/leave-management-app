@@ -49,7 +49,6 @@ export async function createOrganizationAsOwner({
             name: input.name,
             description: input.description,
             domain: input.domain,
-            createdBy: user.id,
         })
         .returning();
 

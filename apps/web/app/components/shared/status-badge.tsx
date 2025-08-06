@@ -5,14 +5,14 @@ import { cn } from "~/lib/utils";
 // 1. Define status config
 const statusStyles = {
   Pending: {
-    label: "Pending for review",
-    color: "bg-primary border-1",
-    dotColor: "bg-white",
+    label: "Pending ",
+    color: " bg-yellow-100 text-yellow-900 border-1",
+    dotColor: "bg-yellow-900",
   },
   Approved: {
     label: "Approved",
-    color: "bg-accent border-1",
-    dotColor: "bg-white",
+    color: "bg-green-100 text-green-900 border-1",
+    dotColor: "bg-green-900",
   },
   Rejected: {
     label: "Rejected",
@@ -31,9 +31,12 @@ export function StatusBadge({ status, className, ...props }: StatusBadgeProps) {
   const style = statusStyles[status];
 
   return (
-    <Badge className={cn("gap-2", style.color, className)} {...props}>
+    <Badge
+      className={cn("gap-2 rounded-full", style.color, className)}
+      {...props}
+    >
       <span className={cn("h-2 w-2 rounded-full", style.dotColor)} />
       {style.label}
     </Badge>
-  );
+  );  
 }

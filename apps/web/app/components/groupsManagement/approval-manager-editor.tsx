@@ -18,7 +18,7 @@ import {
 } from "../ui/command";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Edit, X } from "lucide-react";
+import { Edit, Edit2, X } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { CardDescription } from "../ui/card";
 
@@ -68,10 +68,10 @@ export default function ApprovalManagerEditor({
           className="flex flex-wrap gap-2 border-0 p-3 pl-1 rounded cursor-pointer hover:bg-muted transition-colors"
           title="Click to manage approval managers"
         >
-          <div className="flex flex-row gap-6">
+          <div className="flex flex-col gap-6">
             <div className="flex flex-row gap-2 justify-center items-center">
               <Edit size={16} />
-              <CardDescription className="">Approval managers</CardDescription>
+              <CardDescription className="">Approval Managers:</CardDescription>
             </div>
             <div className="flex flex-row gap-2">
               {managers.length > 0 ? (

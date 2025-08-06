@@ -3,10 +3,9 @@ import { ApiKeyHeaderSchema, getAuthOpenApiResponse, jsonContent } from "../util
 import { connectDb } from "../features/db/connect";
 import { z } from "zod";
 import { createLeaveType } from "../features/leave-types/create";
+import { listLeaveTypes } from "../features/leave-types/list";
 
 export const leaveTypeEndpoint = getHono();
-
-
 
 leaveTypeEndpoint.openapi(
     {
@@ -62,4 +61,61 @@ leaveTypeEndpoint.openapi(
 
 
 
+leaveTypeEndpoint.openapi(
+    {
+        method: "get",
+        path: "/",
+        tags: ["Leave Types"],
+        summary: "List all leave types for an organization",
+        description: "Returns all leave types for the given organization including associated groups.",
+        request: {
+            headers: ApiKeyHeaderSchema,
+            query: z.object({
+                organizationId: z.string().uuid(),
+            }),
+        },
+        responses: {
+            ...getAuthOpenApiResponse(
+                z.object({
+                    ok: z.literal(true),
+                    data: z.array(
+                        z.object({
+                            id: z.string().uuid(),
+                            name: z.string(),
+                            shortCode: z.string(),
+                            icon: z.string().nullable(),
+                            description: z.string().nullable(),
+                            isLimited: z.boolean(),
+                            limitType: z.enum(["YEAR", "QUARTER", "MONTH"]).nullable(),
+                            limitDays: z.string().nullable(), // numeric is returned as string by pg
+                            appliesToEveryone: z.boolean(),
+                            employeeType: z.enum(["FULL_TIME", "PART_TIME"]),
+                            groups: z.array(
+                                z.object({
+                                    groupId: z.string().uuid(),
+                                    groupName: z.string(),
+                                    groupIcon: z.string().nullable(),
+                                })
+                            ),
+                        })
+                    ),
+                })
+            ),
+        },
+    },
+    async (c) => {
+        const db = connectDb({ env: c.env });
+        const apiKey = c.req.valid("header")["x-api-key"];
+        const query = c.req.valid("query");
+
+        const result = await listLeaveTypes({
+            db,
+            env: c.env,
+            apiKey,
+            input: { organizationId: query.organizationId },
+        });
+
+        return c.json(result, result.ok ? 200 : result.status ?? 400);
+    }
+);
 

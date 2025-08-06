@@ -73,7 +73,7 @@ export function LeaveTypeOverview() {
           </div>
           <DialogTrigger asChild>
             <Button variant="default" size="sm" className="rounded">
-              <PlusCircle className="h-4 w-4" />{" "}
+              <PlusCircle className="size-4" />{" "}
               <div className="hidden lg:block ml-2">Add Leave Type</div>
             </Button>
           </DialogTrigger>

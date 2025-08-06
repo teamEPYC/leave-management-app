@@ -1,8 +1,114 @@
-import { Plus } from "lucide-react";
+import { Group, Plus } from "lucide-react";
+import React from "react";
 import { CreateGroupCard } from "~/components/groupsManagement/create-group-card";
 import { Button } from "~/components/ui/button";
+import { mockGroups } from "~/components/groupsManagement/mock-groups";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "~/components/ui/badge";
+import { UserStatusBadge } from "~/components/shared/user-status-badge";
+import { DataTable } from "~/components/ui/data-table";
+
+export type Group = {
+  id: number;
+  groupName: string;
+  managers: string[];
+  members: string[];
+  status: "Active" | "Inactive";
+};
+
+function renderLimitedList(items: string[]) {
+  if (!items || items.length === 0) return null;
+
+  const COLORS = [
+    "#EF4444", // red-500
+    "#F59E0B", // amber-500
+    "#10B981", // emerald-500
+    "#3B82F6", // blue-500
+    "#8B5CF6", // violet-500
+    "#14B8A6", // teal-500
+    "#EC4899", // pink-500
+    "#6366F1", // indigo-500
+  ];
+
+  const stringToColor = (name: string) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % COLORS.length;
+    return COLORS[index];
+  };
+
+  const displayItems = items.slice(0, 2);
+  const extraCount = items.length - displayItems.length;
+
+  return (
+    <div className="flex items-center">
+      {displayItems.map((item, index) => (
+        <div
+          key={item}
+          className={`flex shadow rounded-full size-8 font-semibold text-white ${
+            index > 0 ? "-ml-2" : ""
+          }`}
+          style={{ backgroundColor: stringToColor(item) }}
+        >
+          <div className="m-auto">
+            {item[0]?.toUpperCase() + (item[1] || "").toUpperCase()}
+          </div>
+        </div>
+      ))}
+      {extraCount > 0 && (
+        <Badge
+          className="-ml-2 bg-background rounded-full size-8 flex items-center justify-center"
+          variant="outline"
+        >
+          +{extraCount}
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+export const groupColumns: ColumnDef<Group>[] = [
+  {
+    accessorKey: "groupName",
+    header: "Group Name",
+    cell: ({ row }) => {
+      const name = row.getValue("groupName") as string;
+      return <div className="px-2 font-semibold ">{name}</div>;
+    },
+  },
+  {
+    accessorKey: "managers",
+    header: "Managers",
+    cell: ({ row }) => {
+      const managers = row.getValue("managers") as string[];
+      return <div className="px-2">{renderLimitedList(managers)}</div>;
+    },
+  },
+  {
+    accessorKey: "members",
+    header: "Members",
+    cell: ({ row }) => {
+      const members = row.getValue("members") as string[];
+      return <div className="px-2">{renderLimitedList(members)}</div>;
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as "Active" | "Inactive";
+      return <UserStatusBadge status={status} />;
+    },
+  },
+];
 
 export default function GroupsManagementPage() {
+  // for side sheet
+  const [open, setOpen] = React.useState(false);
+  const [selectedGroup, setSelectedGroup] = React.useState<Group | null>(null);
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -14,11 +120,14 @@ export default function GroupsManagementPage() {
           </p>
         </div>
         <CreateGroupCard />
-        {/* <Button size="sm" className="gap-1 mt-2">
-          <Plus className="h-4 w-4" />{" "}
-          <div className="hidden md:block">Create Groups</div>
-        </Button> */}
       </div>
+      {/* Table for grp detail */}
+      <DataTable
+        columns={groupColumns}
+        data={mockGroups}
+        searchKey="groupName"
+        // onRowClick={handleRowClick}
+      />
     </div>
   );
 }

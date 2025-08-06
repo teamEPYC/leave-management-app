@@ -35,36 +35,37 @@ export default function GroupMembersViewer({
     <Card className="rounded border-0 w-full p-0 shadow-none">
       <CardHeader className="p-0">
         <CardDescription>
-          <div className="flex flex-row gap-2 items-center">
-            <Edit size={16} />
-            <CardDescription className="">Team Members:</CardDescription>
+          <div className="flex flex-row  items-center">
+            {/* <CardDescription className="">Team Members:</CardDescription> */}
+            <GroupMemberEditor
+              currentMembers={members}
+              allUsers={allUsers}
+              onSave={onUpdate}
+            />
           </div>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 p-0 ">
-        <div className="flex flex-wrap gap-3 max-h-[200px] overflow-y-auto">
+        <div className="flex flex-wrap gap-4 max-h-[200px] overflow-y-auto pl-2">
           {members.length === 0 && (
             <p className="text-muted-foreground text-sm">
               No members added yet.
             </p>
           )}
           {members.map((member) => (
-            <div key={member} className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={`https://api.dicebear.com/7.x/initials/svg?seed=${member}`}
-                />
-                <AvatarFallback>{getInitials(member)}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm">{member}</span>
+            <div key={member} className="flex items-center gap-4">
+              <div className="flex flex-row gap-1 items-center justify-center">
+                <Avatar className="size-6">
+                  <AvatarImage
+                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${member}`}
+                  />
+                  <AvatarFallback>{getInitials(member)}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm">{member}</span>
+              </div>
             </div>
           ))}
         </div>
-        <GroupMemberEditor
-          currentMembers={members}
-          allUsers={allUsers}
-          onSave={onUpdate}
-        />
       </CardContent>
     </Card>
   );

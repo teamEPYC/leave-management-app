@@ -69,11 +69,11 @@ export default function ApprovalManagerEditor({
           title="Click to manage approval managers"
         >
           <div className="flex flex-col gap-6">
-            <div className="flex flex-row gap-2 justify-center items-center">
+            <div className="flex flex-row gap-2 justify-center items-center pl-2">
               <Edit size={16} />
               <CardDescription className="">Approval Managers:</CardDescription>
             </div>
-            <div className="flex flex-row gap-2">
+            <div className="flex flex-row gap-2 pl-1">
               {managers.length > 0 ? (
                 managers.map((manager) => (
                   <Badge key={manager} variant="secondary">

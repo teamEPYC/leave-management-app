@@ -4,7 +4,7 @@ import { connectDb } from "../features/db/connect";
 import { z } from "zod";
 import { createLeaveType } from "../features/leave-types/create";
 import { listLeaveTypes } from "../features/leave-types/list";
-import { updateLeaveType } from "../features/leave-types/update";
+import { deactivateLeaveType, updateLeaveType } from "../features/leave-types/update";
 
 export const leaveTypeEndpoint = getHono();
 
@@ -175,6 +175,55 @@ leaveTypeEndpoint.openapi(
             input: {
                 leaveTypeId: params.leaveTypeId,
                 ...body,
+            },
+        });
+
+        return c.json(result, result.ok ? 200 : result.status ?? 400);
+    }
+);
+
+
+
+leaveTypeEndpoint.openapi(
+    {
+        method: "delete",
+        path: "/:leaveTypeId",
+        tags: ["Leave Types"],
+        summary: "Deactivate a leave type",
+        description: "Marks the leave type and its associated groups as inactive so they can no longer be used. Only OWNER or ADMIN can perform this.",
+        request: {
+            headers: ApiKeyHeaderSchema,
+            params: z.object({
+                leaveTypeId: z.string().uuid(),
+            }),
+            query: z.object({
+                organizationId: z.string().uuid(),
+            }),
+        },
+        responses: {
+            ...getAuthOpenApiResponse(
+                z.object({
+                    ok: z.literal(true),
+                    data: z.object({
+                        leaveTypeId: z.string().uuid(),
+                    }),
+                })
+            ),
+        },
+    },
+    async (c) => {
+        const db = connectDb({ env: c.env });
+        const apiKey = c.req.valid("header")["x-api-key"];
+        const params = c.req.valid("param");
+        const query = c.req.valid("query");
+
+        const result = await deactivateLeaveType({
+            db,
+            env: c.env,
+            apiKey,
+            input: {
+                leaveTypeId: params.leaveTypeId,
+                organizationId: query.organizationId,
             },
         });
 

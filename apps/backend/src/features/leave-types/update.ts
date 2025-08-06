@@ -21,6 +21,12 @@ type UpdateLeaveTypeInput = {
     groupIds?: string[];
 };
 
+type DeactivateLeaveTypeInput = {
+    leaveTypeId: string;
+    organizationId: string;
+};
+
+
 async function validateLeaveTypeActive({ db, leaveTypeId, organizationId }: { db: any; leaveTypeId: string; organizationId: string }) {
     const leaveType = await db
         .select()
@@ -178,5 +184,77 @@ export async function updateLeaveType({
             }
         }
     }
+    return { ok: true, data: { leaveTypeId: input.leaveTypeId } } as const;
+}
+
+
+
+
+
+export async function deactivateLeaveType({
+    db,
+    env,
+    apiKey,
+    input,
+}: WithDbAndEnv<{ apiKey: string; input: DeactivateLeaveTypeInput }>) {
+    const userRes = await getUserFromApiKey({ db, env, apiKey });
+    if (!userRes.ok) return userRes;
+
+    const { isOwner, isAdmin } = await getUserRole({
+        db,
+        userId: userRes.user.id,
+        organizationId: input.organizationId,
+    });
+    if (!isOwner && !isAdmin) {
+        return {
+            ok: false,
+            errorCode: ErrorCodes.UNAUTHORIZED_USER,
+            error: "Only OWNER or ADMIN can deactivate leave types",
+            status: 403,
+        } as const;
+    }
+
+    const orgRes = await checkOrganizationIsActive({ db, organizationId: input.organizationId });
+    if (!orgRes.ok) return orgRes;
+
+    const [leaveType] = await db
+        .select()
+        .from(LeaveTypeTable)
+        .where(
+            and(
+                eq(LeaveTypeTable.id, input.leaveTypeId),
+                eq(LeaveTypeTable.organizationId, input.organizationId)
+            )
+        )
+        .limit(1);
+
+    if (!leaveType) {
+        return {
+            ok: false,
+            errorCode: ErrorCodes.NOT_FOUND,
+            error: "Leave type not found for this organization",
+            status: 404,
+        } as const;
+    }
+
+    if (!leaveType.isActive) {
+        return {
+            ok: false,
+            errorCode: ErrorCodes.INVALID_REQUEST,
+            error: "Leave type is already inactive",
+            status: 400,
+        } as const;
+    }
+
+    await db
+        .update(LeaveTypeTable)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(LeaveTypeTable.id, input.leaveTypeId));
+
+    await db
+        .update(LeaveTypeGroupTable)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(LeaveTypeGroupTable.leaveTypeId, input.leaveTypeId));
+
     return { ok: true, data: { leaveTypeId: input.leaveTypeId } } as const;
 }

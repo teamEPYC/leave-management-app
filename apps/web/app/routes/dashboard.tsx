@@ -118,12 +118,16 @@ export default function Dashboard() {
           </CardHeader>
           {/* Will be mapped with data from backend */}
           <CardContent className="space-y-3">
-            <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
-              <p className="font-medium">Apply for Leave</p>
-              <p className="text-sm text-muted-foreground">
-                Submit a new leave request
-              </p>
-            </button>
+            <div className="">
+              <Link to={"/apply-leave"}>
+                <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
+                  <p className="font-medium">Apply for Leave</p>
+                  <p className="text-sm text-muted-foreground">
+                    Submit a new leave request
+                  </p>
+                </button>
+              </Link>
+            </div>
             <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
               <p className="font-medium">View Team Calendar</p>
               <p className="text-sm text-muted-foreground">

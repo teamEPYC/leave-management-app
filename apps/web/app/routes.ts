@@ -13,6 +13,7 @@ export default [
   layout("layouts/main.tsx", [
     route("/dashboard", "routes/admin/admin-dashboard.tsx"),
     route("/groups", "routes/admin/groups-management.tsx"),
+    route("/team-requests", "routes/admin/team-requests.tsx"),
     // route("/dashboard", "routes/dashboard.tsx"),
     // User magement - only available when admin - crate resticted routes once login is setup.
     route("/user-management", "routes/admin/user-management.tsx"),

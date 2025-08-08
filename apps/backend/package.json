@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev --env dev",
+    "dev": "dotenv -e .env -- wrangler dev --env dev",
     "cf-typegen": "wrangler types --env dev",
     "db:generate": "dotenv -e .env -- drizzle-kit generate",
     "db:deploy": "dotenv -e .env -- drizzle-kit migrate",
@@ -18,7 +18,9 @@
     "hono": "4.7.6",
     "luxon": "^3.6.1",
     "postgres": "^3.4.5",
-    "zod": "^3.24.4"
+    "zod": "^3.24.4",
+    "@mjackson/file-storage": "^0.6.1",
+    "@mjackson/form-data-parser": "^0.7.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250505.0",

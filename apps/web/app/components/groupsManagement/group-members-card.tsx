@@ -20,8 +20,8 @@ export default function GroupMembersCard({ group }: propGroupMembersCard) {
     <div className="">
       <Card className="rounded border-0">
         <CardHeader>
-          <CardTitle>Group Memebers</CardTitle>
-          <CardDescription>Manage Group memebers from here</CardDescription>
+          <CardTitle>Group Members</CardTitle>
+          <CardDescription>Manage Group members from here</CardDescription>
         </CardHeader>
         <CardContent className=" space-y-5">
           {/* Approval Managers */}

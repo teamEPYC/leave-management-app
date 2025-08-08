@@ -69,6 +69,7 @@ function renderLimitedList(items: string[]) {
   );
 }
 
+//Will move it to new page once I get types from backend - as it will not be edited often
 export const groupColumns: ColumnDef<Group>[] = [
   {
     accessorKey: "groupName",

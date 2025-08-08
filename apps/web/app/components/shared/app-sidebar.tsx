@@ -2,6 +2,7 @@ import {
   BookOpenText,
   Calendar,
   CalendarClock,
+  FileSignatureIcon,
   Flag,
   Home,
   Inbox,
@@ -46,6 +47,11 @@ const items = [
     title: "Apply for Leave",
     url: "/apply-leave",
     icon: PlusCircle,
+  },
+  {
+    title: "Team Requests",
+    url: "/team-requests",
+    icon: FileSignatureIcon,
   },
   {
     title: "My Leaves",

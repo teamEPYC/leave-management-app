@@ -85,7 +85,7 @@ export const columns: ColumnDef<LeaveRequest>[] = [
     cell: ({ row }) => {
       const reason = row.getValue("reason") as string;
       return (
-        <div className="line-clamp-2 max-w-xs text-muted-foreground">
+        <div className="line-clamp-2 max-w-xs text-muted-foreground pl-2">
           {reason}
         </div>
       );
@@ -124,7 +124,7 @@ export default function TeamRequestsPage() {
         leaveRequest={selectedLeaveRequest}
         open={open}
         onOpenChange={(o) => setOpen(o)}
-      />  
+      />
     </div>
   );
 }

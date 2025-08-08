@@ -1,7 +1,7 @@
 // api/organizations.ts
 import { client } from "../client";
 
-/** list of organizations  */
+// list of organizations
 export async function getOrganizationsByEmail(email: string) {
   const res = await client.GET("/api/v1/organization/list", {
     params: {
@@ -13,7 +13,7 @@ export async function getOrganizationsByEmail(email: string) {
   return res.data.data;
 }
 
-/** Create orgn */
+// Create orgn
 export async function createOrganization({
   name,
   description,
@@ -42,7 +42,7 @@ export async function createOrganization({
   return res.data.data;
 }
 
-/** Update an organization by ID */
+// Update an organization by ID
 export async function updateOrganization({
   id,
   apiKey,
@@ -74,7 +74,7 @@ export async function updateOrganization({
   return res.data.data;
 }
 
-/** Delete an org */
+// Delete an org
 export async function deleteOrganization({
   id,
   apiKey,
@@ -97,7 +97,7 @@ export async function deleteOrganization({
   return res.data.data;
 }
 
-/** Invite to organization */
+// Invite to organization
 export async function inviteToOrganization({
   orgId,
   apiKey,
@@ -131,7 +131,7 @@ export async function inviteToOrganization({
   return res.data.data;
 }
 
-/** Join an organization via domain or invitation ID */
+// Join an organization via domain or invitation ID
 export async function joinOrganization({
   orgId,
   apiKey,

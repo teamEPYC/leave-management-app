@@ -6,8 +6,9 @@ import { Plus } from "lucide-react";
 import { DataTable } from "~/components/ui/data-table";
 import { UserStatusBadge } from "~/components/shared/user-status-badge";
 import { UserDetailsSheet } from "~/components/userManagement/user-details-sheet";
+import { mockUsers } from "~/components/userManagement/mock-users";
 
-type User = {
+export type User = {
   id: number;
   name: string;
   email: string;
@@ -78,51 +79,6 @@ export const columns: ColumnDef<User>[] = [
     },
   },
 ];
-const sampleData: User[] = [
-  {
-    id: 1,
-    name: "Utkarsh",
-    email: "abd@email",
-    role: "Owner",
-    groups: ["Engineering"],
-    status: "Active",
-    leaves: ["1", "2", "3"],
-  },
-  {
-    id: 2,
-    name: "Manish",
-    email: "kjhg@email",
-    role: "Owner",
-    groups: ["Engineering", "No-Code"],
-    status: "Inactive",
-    leaves: ["16", "32", "31"],
-  },
-  {
-    id: 3,
-    name: "Mishra",
-    email: "abd@email",
-    role: "Owner",
-    groups: ["Engineering", "Leadership"],
-    status: "Active",
-    leaves: ["1", "2", "3"],
-  },
-  {
-    id: 4,
-    name: "Pizza",
-    email: "abd@email",
-    role: "Owner",
-    groups: ["Engineering", "Leadership"],
-    status: "Active",
-  },
-  {
-    id: 5,
-    name: "Jane Doe",
-    email: "jane@example.com",
-    role: "Employee",
-    groups: ["Marketing"],
-    status: "Inactive",
-  },
-];
 
 export default function UserManagementPage() {
   // for side sheet
@@ -152,7 +108,7 @@ export default function UserManagementPage() {
       {/* Table */}
       <DataTable
         columns={columns}
-        data={sampleData}
+        data={mockUsers}
         searchKey="name"
         onRowClick={handleRowClick}
       />

@@ -12,6 +12,7 @@ import {
   Search,
   Settings,
   UserCheck,
+  UsersRound,
 } from "lucide-react";
 import {
   Sidebar,
@@ -50,6 +51,11 @@ const items = [
     title: "My Leaves",
     url: "/my-leaves",
     icon: List,
+  },
+  {
+    title: "Groups",
+    url: "/groups",
+    icon: UsersRound,
   },
   {
     title: "Leave Balance",

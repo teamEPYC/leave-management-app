@@ -33,7 +33,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="p-4 bg-muted">
+        <div className="p-6 bg-muted">
           <Outlet />
         </div>
       </main>

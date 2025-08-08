@@ -1,14 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { BookCheck, Check, CheckCircle, ChevronDown } from "lucide-react";
+import { CheckCircle, ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
-import { Command, CommandGroup, CommandItem } from "../ui/command";
+import {
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "../ui/command";
 import { cn } from "~/lib/utils";
 
 interface MultiSelectProps {
-  label: string;
+  label?: string;
   options: string[];
   selected: string[];
   onChange: (values: string[]) => void;
@@ -25,6 +30,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   className,
 }) => {
   const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
 
   const toggleOption = (option: string) => {
     if (selected.includes(option)) {
@@ -33,6 +39,10 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
       onChange([...selected, option]);
     }
   };
+
+  const filteredOptions = options.filter((opt) =>
+    opt.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className={cn("space-y-1", className)}>
@@ -52,28 +62,40 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
           <Command>
+            <CommandInput
+              placeholder="Search..."
+              value={search}
+              onValueChange={setSearch}
+              className=""
+            />
             <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option}
-                  onSelect={() => toggleOption(option)}
-                  className="cursor-pointer"
-                >
-                  <div
-                    className={cn(
-                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                      selected.includes(option)
-                        ? "bg-background text-primary"
-                        : "opacity-50"
-                    )}
+              {filteredOptions.length ? (
+                filteredOptions.map((option) => (
+                  <CommandItem
+                    key={option}
+                    onSelect={() => toggleOption(option)}
+                    className="cursor-pointer"
                   >
-                    {selected.includes(option) && (
-                      <CheckCircle className="h-3 w-3" />
-                    )}
-                  </div>
-                  <span>{option}</span>
-                </CommandItem>
-              ))}
+                    <div
+                      className={cn(
+                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
+                        selected.includes(option)
+                          ? "bg-background text-primary"
+                          : "opacity-50"
+                      )}
+                    >
+                      {selected.includes(option) && (
+                        <CheckCircle className="h-3 w-3" />
+                      )}
+                    </div>
+                    <span>{option}</span>
+                  </CommandItem>
+                ))
+              ) : (
+                <div className="p-3 text-sm text-muted-foreground">
+                  No results found.
+                </div>
+              )}
             </CommandGroup>
           </Command>
         </PopoverContent>

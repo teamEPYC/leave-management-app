@@ -25,7 +25,7 @@ export const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
       <CardHeader className="flex flex-row items-center justify-between ">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <div className="rounded-full p-3 bg-muted">
-          <Icon className="h-7 w-7 text-muted-foreground" />
+          <Icon className="size-7 text-muted-foreground" />
         </div>
       </CardHeader>
       <CardContent>

@@ -6,10 +6,11 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { Link } from "react-router-dom";
 import { CalendarCheckIcon, Globe } from "lucide-react";
 
-const googleAuthUrl = "/dashboard";
+// Build backend OAuth start URL so the browser follows the backend redirect to Google
+const backendBaseUrl = (import.meta as any).env.VITE_BACKEND_BASE_URL?.replace(/\/$/, "") || "";
+const googleAuthUrl = `${backendBaseUrl}/api/v1/auth/google/start`;
 
 export default function LoginCard() {
   return (
@@ -42,10 +43,10 @@ export default function LoginCard() {
             className="w-full flex items-center justify-center gap-3 font-medium"
             asChild
           >
-            <Link to={googleAuthUrl}>
+            <a href={googleAuthUrl}>
               <Globe className="text-xl" />
               Continue with Google
-            </Link>
+            </a>
           </Button>
 
           {/* Support text */}

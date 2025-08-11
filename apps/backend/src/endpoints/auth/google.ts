@@ -8,7 +8,10 @@ type Variables = {
   db: ReturnType<typeof import("../../features/db/connect").connectDb>;
 };
 
-export const googleAuthRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
+export const googleAuthRoutes = new Hono<{
+  Bindings: Env;
+  Variables: Variables;
+}>();
 
 // 1. Start Google OAuth flow
 googleAuthRoutes.get("/start", (c) => {
@@ -52,7 +55,7 @@ googleAuthRoutes.get("/callback", async (c) => {
       }),
     });
 
-    const token = await tokenRes.json() as any;
+    const token = (await tokenRes.json()) as any;
     if (!token.access_token) {
       console.error("❌ Token exchange failed", {
         code,
@@ -65,17 +68,23 @@ googleAuthRoutes.get("/callback", async (c) => {
         token,
       });
 
-      return c.json({ ok: false, error: "Failed to get access token", details: token }, 401);
+      return c.json(
+        { ok: false, error: "Failed to get access token", details: token },
+        401
+      );
     }
 
     // 2. Get user profile
-    const userRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-      headers: {
-        Authorization: `Bearer ${token.access_token}`,
-      },
-    });
+    const userRes = await fetch(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${token.access_token}`,
+        },
+      }
+    );
 
-    const userData = await userRes.json() as any;
+    const userData = (await userRes.json()) as any;
     const { email, name, picture, sub: googleId } = userData;
 
     // 3. Check if user already exists
@@ -134,13 +143,14 @@ googleAuthRoutes.get("/callback", async (c) => {
         },
       },
     });
-
   } catch (error: any) {
     console.error("OAuth error:", error);
-    return c.json({ ok: false, error: "OAuth exchange failed", details: error.message }, 500);
+    return c.json(
+      { ok: false, error: "OAuth exchange failed", details: error.message },
+      500
+    );
   }
 });
-
 
 // Optional: debug route
 googleAuthRoutes.get("/", (c) => c.text("Google auth routes are live"));
@@ -157,7 +167,7 @@ googleAuthRoutes.get("/test-callback", (c) => {
       has_redirect_uri: !!c.env.GOOGLE_REDIRECT_URI,
       client_id: c.env.GOOGLE_CLIENT_ID,
       redirect_uri: c.env.GOOGLE_REDIRECT_URI,
-      secret_starts_with: c.env.GOOGLE_CLIENT_SECRET?.substring(0, 10)
-    }
+      secret_starts_with: c.env.GOOGLE_CLIENT_SECRET?.substring(0, 10),
+    },
   });
 });

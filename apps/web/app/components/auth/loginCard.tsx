@@ -9,8 +9,12 @@ import { Button } from "~/components/ui/button";
 import { CalendarCheckIcon, Globe } from "lucide-react";
 
 // Build backend OAuth start URL so the browser follows the backend redirect to Google
-const backendBaseUrl = (import.meta as any).env.VITE_BACKEND_BASE_URL?.replace(/\/$/, "") || "";
-const googleAuthUrl = `${backendBaseUrl}/api/v1/auth/google/start`;
+const backendBaseUrl =
+  (import.meta as any).env.VITE_BACKEND_BASE_URL?.replace(/\/$/, "") || "";
+const frontendCallbackUrl = `${window.location.origin}/auth/callback`;
+const googleAuthUrl = `${backendBaseUrl}/api/v1/auth/google/start?redirect_uri=${encodeURIComponent(
+  frontendCallbackUrl
+)}`;
 
 export default function LoginCard() {
   return (

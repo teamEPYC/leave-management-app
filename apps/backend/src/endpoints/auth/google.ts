@@ -20,6 +20,15 @@ googleAuthRoutes.get("/start", (c) => {
   if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI) {
     return c.json({ ok: false, error: "Missing Google client env vars" }, 500);
   }
+  
+  // This is a robust check to ensure the redirect_uri is a valid URL
+  // before we use it to build the Google authorization URL.
+  try {
+    new URL(GOOGLE_REDIRECT_URI);
+  } catch (e) {
+    console.error("Invalid GOOGLE_REDIRECT_URI:", GOOGLE_REDIRECT_URI);
+    return c.json({ ok: false, error: "Invalid redirect URI in backend config" }, 500);
+  }
 
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
@@ -27,6 +36,7 @@ googleAuthRoutes.get("/start", (c) => {
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", "openid email profile");
   url.searchParams.set("access_type", "offline");
+  url.searchParams.set("prompt", "select_account"); // Add this to match frontend
 
   return c.redirect(url.toString());
 });
@@ -122,8 +132,7 @@ googleAuthRoutes.get("/callback", async (c) => {
       user = existingUser[0];
     }
 
-    // 6. Generate dummy API key (replace later with real token/session logic)
-    // const apiKey = `epyc_${crypto.randomUUID().replace(/-/g, "")}`;
+    // 6. Generate API key
     const apiKey = await createApiKey({ env, userId: user.id });
 
     return c.json({
@@ -138,7 +147,6 @@ googleAuthRoutes.get("/callback", async (c) => {
           image: user.image,
         },
         token: {
-          // access_token: token.access_token,
           expires_in: token.expires_in,
         },
       },

@@ -1,160 +1,133 @@
-// api/organizations.ts
+// orgClient.ts
 import { client } from "../client";
 
-// list of organizations
-export async function getOrganizationsByEmail(email: string) {
-  const res = await client.GET("/api/v1/organization/list", {
-    params: {
-      query: { email },
-    },
-  });
+export type ApiKey = { apikey: string };
 
-  if (res.error) throw new Error(JSON.stringify(res.error));
-  return res.data.data;
-}
-
-// Create orgn
-export async function createOrganization({
-  name,
-  description,
-  domain,
-  apiKey,
-}: {
+export type CreateOrganizationBody = {
   name: string;
   description: string;
   domain: string;
-  apiKey: string;
-}) {
-  const res = await client.POST("/api/v1/organization", {
-    params: {
-      header: {
-        "x-api-key": apiKey,
-      },
-    },
-    body: {
-      name,
-      description,
-      domain,
-    },
-  });
+};
 
+export type UpdateOrganizationBody = {
+  name?: string;
+  description?: string;
+  icon?: string;
+  domain?: string | null;
+  setting?: Record<string, unknown> | null;
+};
+
+export type InviteMemberBody = {
+  email: string; // email format
+  roleId?: string; // uuid
+  groups?: string[];
+  employeeType: "FULL_TIME";
+};
+
+export type JoinOrganizationBody = {
+  invitationId?: string; // uuid
+};
+
+// ===== Helpers =====
+function ensure<T>(res: { error?: unknown; data?: { data: T } }) {
   if (res.error) throw new Error(JSON.stringify(res.error));
-  return res.data.data;
+  // @ts-expect-error: data shape follows your generator’s convention
+  return res.data.data as T;
 }
 
-// Update an organization by ID
+// ===== Endpoints =====
+
+// POST /api/v1/organization
+export async function createOrganization({
+  apikey,
+  body,
+}: ApiKey & { body: CreateOrganizationBody }) {
+  const res = await client.POST("/api/v1/organization", {
+    params: { header: { "x-api-key": apikey } },
+    body,
+  });
+  return ensure<{ organizationId: string }>(res);
+}
+
+// PUT /api/v1/organization/:id
 export async function updateOrganization({
+  apikey,
   id,
-  apiKey,
-  updates,
-}: {
-  id: string;
-  apiKey: string;
-  updates: {
-    name?: string;
-    description?: string;
-    icon?: string;
-    domain?: string | null;
-    setting?: Record<string, unknown> | null;
-  };
-}) {
+  body,
+}: ApiKey & { id: string; body: UpdateOrganizationBody }) {
   const res = await client.PUT("/api/v1/organization/:id", {
     params: {
-      header: {
-        "x-api-key": apiKey,
-      },
-      path: {
-        id,
-      },
+      header: { "x-api-key": apikey },
+      path: { id },
     },
-    body: updates,
+    body,
   });
-
-  if (res.error) throw new Error(JSON.stringify(res.error));
-  return res.data.data;
+  return ensure<{ organizationId: string }>(res);
 }
 
-// Delete an org
+// DELETE /api/v1/organization/:id
 export async function deleteOrganization({
+  apikey,
   id,
-  apiKey,
-}: {
-  id: string;
-  apiKey: string;
-}) {
+}: ApiKey & { id: string }) {
   const res = await client.DELETE("/api/v1/organization/:id", {
     params: {
-      header: {
-        "x-api-key": apiKey,
-      },
-      path: {
-        id,
-      },
+      header: { "x-api-key": apikey },
+      path: { id },
     },
   });
-
-  if (res.error) throw new Error(JSON.stringify(res.error));
-  return res.data.data;
+  return ensure<{ organizationId: string; deactivatedAt: string }>(res);
 }
 
-// Invite to organization
-export async function inviteToOrganization({
+// GET /api/v1/organization/list?email=
+export async function listOrganizations({ email }: { email: string }) {
+  const res = await client.GET("/api/v1/organization/list", {
+    params: { query: { email } },
+  });
+  return ensure<
+    {
+      id: string;
+      name: string;
+      description: string;
+      domain: string;
+      icon: string | null;
+    }[]
+  >(res);
+}
+
+// POST /api/v1/organization/:orgId/invite
+export async function inviteMember({
+  apikey,
   orgId,
-  apiKey,
-  email,
-  roleId,
-  groups,
-}: {
-  orgId: string;
-  apiKey: string;
-  email: string;
-  roleId?: string;
-  groups?: string[];
-}) {
+  body,
+}: ApiKey & { orgId: string; body: InviteMemberBody }) {
   const res = await client.POST("/api/v1/organization/:orgId/invite", {
     params: {
-      header: {
-        "x-api-key": apiKey,
-      },
-      path: {
-        orgId,
-      },
+      header: { "x-api-key": apikey },
+      path: { orgId },
     },
-    body: {
-      email,
-      roleId,
-      groups,
-    },
+    body,
   });
-
-  if (res.error) throw new Error(JSON.stringify(res.error));
-  return res.data.data;
+  return ensure<{ invitationId: string; expiresAt: string }>(res);
 }
 
-// Join an organization via domain or invitation ID
+// POST /api/v1/organization/:orgId/join
 export async function joinOrganization({
+  apikey,
   orgId,
-  apiKey,
-  invitationId,
-}: {
-  orgId: string;
-  apiKey: string;
-  invitationId?: string;
-}) {
+  body,
+}: ApiKey & { orgId: string; body?: JoinOrganizationBody }) {
   const res = await client.POST("/api/v1/organization/:orgId/join", {
     params: {
-      header: {
-        "x-api-key": apiKey,
-      },
-      path: {
-        orgId,
-      },
+      header: { "x-api-key": apikey },
+      path: { orgId },
     },
-    body: {
-      invitationId,
-    },
+    body,
   });
-
-  if (res.error) throw new Error(JSON.stringify(res.error));
-  return res.data.data;
+  return ensure<{
+    organizationId: string;
+    joinedAt: string;
+    alreadyMember: boolean;
+    joinType: "domain" | "invite";
+  }>(res);
 }

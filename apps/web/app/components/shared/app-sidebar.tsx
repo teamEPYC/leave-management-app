@@ -29,6 +29,9 @@ import {
   SidebarSeparator,
 } from "../ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getSessionUser } from "~/lib/session";
+import LogoutButton from "~/components/auth/logoutButton";
 import { Outlet } from "react-router";
 
 // Menu items configuration
@@ -87,6 +90,16 @@ const items = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const [name, setName] = useState<string | undefined>(undefined);
+  const [email, setEmail] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const u = getSessionUser();
+    setName(u?.name ?? undefined);
+    setEmail(u?.email ?? undefined);
+  }, []);
+
+  const initials = (name || email || "").split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase()).join("") || "?";
 
   return (
     <Sidebar className="border-r" variant="sidebar">
@@ -133,14 +146,15 @@ export function AppSidebar() {
       <SidebarFooter className="bg-primary border-t p-4">
         <div className="flex items-center gap-3 rounded-lg p-3 bg-secondary">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
-            JD
+            {initials}
           </div>
           <div className="flex flex-col flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">John Doe</p>
+            <p className="text-sm font-medium truncate">{name || "Signed in"}</p>
             <p className="text-xs text-muted-foreground truncate">
-              john.doe@company.com
+              {email || "--"}
             </p>
           </div>
+          <LogoutButton />
         </div>
       </SidebarFooter>
     </Sidebar>

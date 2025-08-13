@@ -43,7 +43,6 @@ export async function createLeaveType({
     isLimited: boolean;
     limitType?: "YEAR" | "QUARTER" | "MONTH";
     limitDays?: number;
-    appliesToEveryone: boolean;
     groupIds?: string[];
     employeeType: "FULL_TIME" | "PART_TIME";
   };

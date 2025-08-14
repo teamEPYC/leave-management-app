@@ -1,4 +1,4 @@
-import { redirect, type LoaderFunctionArgs, useLoaderData } from "react-router-dom";
+import { redirect, type LoaderFunctionArgs, useLoaderData, type ActionFunctionArgs, useActionData, useNavigation, Form } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "~/components/ui/button";
@@ -9,6 +9,7 @@ import { Textarea } from "~/components/ui/textarea";
 import { Spinner } from "~/components/ui/spinner";
 import { createOrganization, joinOrganization, listOrganizations } from "~/lib/api/organization/organizations";
 import { setSessionUser } from "~/lib/session";
+import { commitSession, getSession } from "~/lib/session.server";
 import { toast } from "sonner";
 import { Plus, Users, ArrowRight, CheckCircle } from "lucide-react";
 
@@ -23,7 +24,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Client component handles parsing and validation.
   try {
     const url = new URL(request.url);
-    const apiKey = url.searchParams.get("apiKey");
+    const cookie = request.headers.get("Cookie");
+    const session = await getSession(cookie);
+    const apiKey = session.get("apiKey") as string | undefined;
     const userParam = url.searchParams.get("user");
     if (userParam) {
       const user = JSON.parse(decodeURIComponent(userParam));
@@ -37,8 +40,55 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return null;
 }
 
+export async function action({ request }: ActionFunctionArgs) {
+  const cookie = request.headers.get("Cookie");
+  const session = await getSession(cookie);
+  const apiKey = session.get("apiKey") as string | undefined;
+  if (!apiKey) {
+    return { ok: false, message: "Missing API key. Please sign in again." } as const;
+  }
+
+  const form = await request.formData();
+  const intent = String(form.get("_action") || "");
+
+  try {
+    if (intent === "create") {
+      const name = String(form.get("name") || "").trim();
+      const description = String(form.get("description") || "").trim();
+      const domain = String(form.get("domain") || "").trim();
+      if (!name) return { ok: false, message: "Organization name is required" } as const;
+      if (domain && !domain.includes(".")) return { ok: false, message: "Please enter a valid domain (e.g., example.com)" } as const;
+
+      const res = await createOrganization({ apikey: apiKey, body: { name, description: description || "Leave management organization", domain: domain || "example.com" } });
+      const orgId = res.organizationId;
+      session.set("currentOrgId", orgId);
+      const headers = new Headers({ "Set-Cookie": await commitSession(session) });
+      return redirect("/admin/leave-types/new", { headers });
+    }
+
+    if (intent === "joinExisting" || intent === "joinManual") {
+      const orgId = String(form.get("orgId") || "").trim();
+      const invitationId = String(form.get("invitationId") || "").trim() || undefined;
+      if (!orgId) return { ok: false, message: "Organization ID is required" } as const;
+
+      const res = await joinOrganization({ apikey: apiKey, orgId, body: invitationId ? { invitationId } : {} });
+      session.set("currentOrgId", res.organizationId);
+      const headers = new Headers({ "Set-Cookie": await commitSession(session) });
+      return redirect("/dashboard", { headers });
+    }
+
+    return { ok: false, message: "Unknown action" } as const;
+  } catch (e) {
+    const m = e instanceof Error ? e.message : "Request failed";
+    return { ok: false, message: m } as const;
+  }
+}
+
 export default function OnboardingPage() {
   const loader = useLoaderData() as null | { user: User; apiKey?: string; orgs?: { id: string; name: string }[] };
+  const actionData = useActionData() as null | { ok: false; message: string };
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
   const navigate = useNavigate();
   const [step, setStep] = useState<'choice' | 'create' | 'join' | 'success'>('choice');
   const [actionType, setActionType] = useState<'create' | 'join' | null>(null);
@@ -57,86 +107,7 @@ export default function OnboardingPage() {
     setPageLoading(false);
   }, []);
 
-  const handleCreateOrg = async () => {
-    if (!orgName.trim()) {
-      setError('Organization name is required');
-      return;
-    }
-
-    // Basic domain validation
-    if (orgDomain.trim() && !orgDomain.trim().includes('.')) {
-      setError('Please enter a valid domain (e.g., example.com)');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const apiKey = urlParams.get('apiKey');
-      
-      if (!apiKey) {
-        throw new Error('API key not found');
-      }
-
-      const result = await createOrganization({
-        apikey: apiKey,
-        body: {
-          name: orgName.trim(),
-          description: orgDescription.trim() || 'Leave management organization',
-          domain: orgDomain.trim() || 'example.com'
-        }
-      });
-
-      toast.success(`Organization "${orgName.trim()}" created successfully!`);
-      setActionType('create');
-      setStep('success');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create organization';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleJoinOrg = async () => {
-    if (!invitationId.trim()) {
-      setError('Invitation ID is required');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const apiKey = urlParams.get('apiKey');
-      
-      if (!apiKey) {
-        throw new Error('API key not found');
-      }
-
-      // For now, we'll need to get the org ID from the invitation
-      // This might need to be adjusted based on your backend implementation
-      const result = await joinOrganization({
-        apikey: apiKey,
-        orgId: invitationId.trim(),
-        body: {}
-      });
-
-      toast.success('Successfully joined the organization!');
-      setActionType('join');
-      setStep('success');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to join organization';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Client handlers removed; actions handle network calls
 
   const handleSkip = () => {
     navigate('/dashboard');
@@ -207,19 +178,18 @@ export default function OnboardingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {actionData?.message && (
+              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">{actionData.message}</div>
+            )}
+            <Form method="post" className="space-y-4">
+              <input type="hidden" name="_action" value="create" />
             <div className="space-y-2">
               <Label htmlFor="orgName">Organization Name *</Label>
               <Input
                 id="orgName"
-                value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
+                name="name"
                 placeholder="Enter organization name"
-                disabled={loading}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !loading) {
-                    handleCreateOrg();
-                  }
-                }}
+                disabled={isSubmitting}
               />
             </div>
             
@@ -227,10 +197,9 @@ export default function OnboardingPage() {
               <Label htmlFor="orgDescription">Description</Label>
               <Textarea
                 id="orgDescription"
-                value={orgDescription}
-                onChange={(e) => setOrgDescription(e.target.value)}
+                name="description"
                 placeholder="Brief description of your organization"
-                disabled={loading}
+                disabled={isSubmitting}
                 rows={3}
               />
             </div>
@@ -239,34 +208,26 @@ export default function OnboardingPage() {
               <Label htmlFor="orgDomain">Domain</Label>
               <Input
                 id="orgDomain"
-                value={orgDomain}
-                onChange={(e) => setOrgDomain(e.target.value)}
+                name="domain"
                 placeholder="example.com"
-                disabled={loading}
+                disabled={isSubmitting}
               />
             </div>
-
-            {error && (
-              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-                {error}
-              </div>
-            )}
-
             <div className="flex gap-3 pt-4">
               <Button
                 variant="outline"
                 onClick={() => setStep('choice')}
-                disabled={loading}
+                disabled={isSubmitting}
                 className="flex-1"
               >
                 Back
               </Button>
               <Button
-                onClick={handleCreateOrg}
-                disabled={loading}
+                type="submit"
+                disabled={isSubmitting}
                 className="flex-1"
               >
-                {loading ? (
+                {isSubmitting ? (
                   <>
                     <Spinner size="sm" />
                     Creating...
@@ -275,7 +236,8 @@ export default function OnboardingPage() {
                   'Create Organization'
                 )}
               </Button>
-            </div>
+              </div>
+            </Form>
           </CardContent>
         </Card>
       </div>
@@ -296,52 +258,40 @@ export default function OnboardingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="invitationId">Invitation ID *</Label>
-              <Input
-                id="invitationId"
-                value={invitationId}
-                onChange={(e) => setInvitationId(e.target.value)}
-                placeholder="Enter invitation ID"
-                disabled={loading}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !loading) {
-                    handleJoinOrg();
-                  }
-                }}
-              />
-            </div>
-
-            {error && (
-              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-                {error}
-              </div>
+            {actionData?.message && (
+              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">{actionData.message}</div>
             )}
-
-            <div className="flex gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setStep('choice')}
-                disabled={loading}
-                className="flex-1"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={handleJoinOrg}
-                disabled={loading}
-                className="flex-1"
-              >
-                {loading ? (
-                  <>
-                    <Spinner size="sm" />
-                    Joining...
-                  </>
-                ) : (
-                  'Join Organization'
-                )}
-              </Button>
-            </div>
+            <Form method="post" className="space-y-4">
+              <input type="hidden" name="_action" value="joinManual" />
+              <div className="space-y-2">
+                <Label htmlFor="orgId">Organization ID *</Label>
+                <Input id="orgId" name="orgId" placeholder="Organization UUID" disabled={isSubmitting} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invitationId">Invitation ID (optional)</Label>
+                <Input id="invitationId" name="invitationId" placeholder="Invitation UUID" disabled={isSubmitting} />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep('choice')}
+                  disabled={isSubmitting}
+                  className="flex-1"
+                >
+                  Back
+                </Button>
+                <Button type="submit" disabled={isSubmitting} className="flex-1">
+                  {isSubmitting ? (
+                    <>
+                      <Spinner size="sm" />
+                      Joining...
+                    </>
+                  ) : (
+                    'Join Organization'
+                  )}
+                </Button>
+              </div>
+            </Form>
           </CardContent>
         </Card>
       </div>
@@ -366,31 +316,13 @@ export default function OnboardingPage() {
               <h4 className="text-base font-medium text-gray-800">Organizations available for {loader.user.email}</h4>
               <div className="grid md:grid-cols-2 gap-3">
                 {loader.orgs.map((o) => (
-                  <Card key={o.id} className="p-4 flex items-center justify-between">
-                    <span className="font-medium">{o.name}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          setLoading(true);
-                          setActionType('join');
-                          const params = new URLSearchParams(window.location.search);
-                          const apiKey = loader?.apiKey || params.get('apiKey') || '';
-                          await joinOrganization({ apikey: apiKey, orgId: o.id });
-                          toast.success(`Joined ${o.name}`);
-                          setStep('success');
-                        } catch (e) {
-                          const m = e instanceof Error ? e.message : 'Failed to join organization';
-                          setError(m);
-                          toast.error(m);
-                        } finally {
-                          setLoading(false);
-                        }
-                      }}
-                    >
-                      Join
-                    </Button>
+                  <Card key={o.id} className="p-4 flex items-center justify-between gap-3">
+                    <span className="font-medium flex-1">{o.name}</span>
+                    <Form method="post">
+                      <input type="hidden" name="_action" value="joinExisting" />
+                      <input type="hidden" name="orgId" value={o.id} />
+                      <Button variant="outline" size="sm" type="submit" disabled={isSubmitting}>Join</Button>
+                    </Form>
                   </Card>
                 ))}
               </div>

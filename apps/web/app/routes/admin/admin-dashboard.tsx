@@ -1,4 +1,5 @@
 import { ProgressIndicator } from "~/components/shared/progress-indicator";
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs, useLoaderData } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -30,6 +31,22 @@ import { LeaveHistoryItem } from "~/components/myLeaves/LeaveHistoryItem";
 import { LeaveTypeOverview } from "~/components/leaveTypes/leave-types";
 import { DashboardStatCard } from "~/components/dashboard/dashboard-stat-card";
 import { QuickActionsCard } from "~/components/dashboard/adminDashboard/QuickActionsCard";
+import { loadLeaveTypes, createLeaveTypeFromForm, type LeaveTypeDto } from "./leave-types.server";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const list = await loadLeaveTypes(request);
+  if (list instanceof Response) return list; // redirected
+  return { leaveTypes: list as LeaveTypeDto[] };
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const form = await request.formData();
+  const intent = String(form.get("_action") || "");
+  if (intent !== "createLeaveType") return redirect("/dashboard");
+  const res = await createLeaveTypeFromForm(request, form);
+  if (res instanceof Response) return res;
+  return redirect("/dashboard");
+}
 
 // mock data
 const recentLeaves = [
@@ -94,6 +111,7 @@ const stats = [
 ];
 
 export default function AdminDashboard() {
+  const data = useLoaderData() as { leaveTypes: LeaveTypeDto[] };
   return (
     <div className="space-y-6">
       <div>
@@ -146,7 +164,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
         <div className="col-span-6">
-          <LeaveTypeOverview />
+          <LeaveTypeOverview leaveTypes={data.leaveTypes} />
         </div>
       </div>
 

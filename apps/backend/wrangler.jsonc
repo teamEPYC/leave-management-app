@@ -21,7 +21,7 @@
         }
       ],
       "vars": {
-        "GOOGLE_CLIENT_ID": "859931764077-okrt5efoomdnu8o4r9hqie5o8tb7khb6.apps.googleusercontent.com",
+        "GOOGLE_CLIENT_ID": "664421180698-3nec7a4f5i4ovh0odbcp3pnphla2qaj0.apps.googleusercontent.com",
         "GOOGLE_REDIRECT_URI": "http://127.0.0.1:5173/authCallback"
       }
     }

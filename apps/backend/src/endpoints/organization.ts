@@ -7,6 +7,7 @@ import { handleApiErrors } from "../utils/error";
 import { deactivateOrganization, updateOrganization } from "../features/organization/update";
 import { getOrganizationList } from "../features/organization/get";
 import { inviteUserToOrg } from "../features/organization/invite-user";
+
 import { joinOrganization } from "../features/organization/join";
 
 export const organizationEndpoint = getHono();

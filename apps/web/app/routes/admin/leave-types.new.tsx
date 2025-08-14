@@ -1,4 +1,4 @@
-import { redirect, type ActionFunctionArgs, type LoaderFunctionArgs, useActionData } from "react-router-dom";
+import { redirect, type ActionFunctionArgs, type LoaderFunctionArgs, useActionData, useLoaderData } from "react-router-dom";
 import { Form, useNavigation } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
@@ -8,15 +8,20 @@ import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { createLeaveType } from "~/lib/api/leaveTypes/leave-types";
+import { getSession } from "~/lib/session.server";
+import { listOrganizations } from "~/lib/api/organization/organizations";
 
-export async function loader(_args: LoaderFunctionArgs) {
-  return null;
+export async function loader(args: LoaderFunctionArgs) {
+  const cookie = args.request.headers.get("Cookie");
+  const session = await getSession(cookie);
+  const orgId = (session.get("currentOrgId") as string | undefined) || null;
+  return { orgId };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const url = new URL(request.url);
-  // Dev note: hardcoded API key fallback for local development while auth is pending.
-  const HARDCODED_API_KEY = url.searchParams.get("apiKey") || "REPLACE_WITH_DEV_API_KEY";
+  const cookie = request.headers.get("Cookie");
+  const session = await getSession(cookie);
+  const apiKey = session.get("apiKey") as string | undefined;
 
   const form = await request.formData();
   const organizationId = String(form.get("organizationId") || "").trim();
@@ -29,11 +34,19 @@ export async function action({ request }: ActionFunctionArgs) {
   const limitTypeRaw = String(form.get("limitType") || "").trim();
   const limitDaysRaw = String(form.get("limitDays") || "").trim();
 
+  // Basic validations
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!organizationId || !name || !shortCode) {
     return { ok: false, message: "organizationId, name and shortCode are required" } as const;
   }
+  if (!uuidRegex.test(organizationId)) {
+    return { ok: false, message: "Organization ID must be a valid UUID" } as const;
+  }
 
   try {
+    if (!apiKey) {
+      return { ok: false, message: "Missing API key in session. Please login again." } as const;
+    }
     const payload: Parameters<typeof createLeaveType>[0]["leaveType"] = {
       organizationId,
       name,
@@ -50,13 +63,24 @@ export async function action({ request }: ActionFunctionArgs) {
       Object.assign(payload, { limitDays, limitType });
     }
 
-    const res = await createLeaveType({ apiKey: HARDCODED_API_KEY, leaveType: payload });
+    const res = await createLeaveType({ apiKey, leaveType: payload });
     if (!res || !res.leaveTypeId) {
       return { ok: false, message: "Failed to create leave type" } as const;
     }
     return redirect("/dashboard");
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Unknown error";
+    let message = e instanceof Error ? e.message : "Unknown error";
+    try {
+      const parsed = typeof message === "string" ? JSON.parse(message) : null;
+      const zodMsg = parsed?.error || parsed?.message || null;
+      if (zodMsg) {
+        if (String(zodMsg).toLowerCase().includes("invalid uuid") || String(zodMsg).toLowerCase().includes("uuid")) {
+          message = "Organization ID must be a valid UUID";
+        } else {
+          message = String(zodMsg);
+        }
+      }
+    } catch {}
     return { ok: false, message } as const;
   }
 }
@@ -65,6 +89,7 @@ export default function NewLeaveTypeRoute() {
   const actionData = useActionData() as null | { ok: false; message: string };
   const nav = useNavigation();
   const isSubmitting = nav.state === "submitting" || nav.state === "loading";
+  const loader = useLoaderData() as null | { orgId: string | null };
 
   useEffect(() => {
     // no-op placeholder for side-effects if needed later
@@ -84,7 +109,7 @@ export default function NewLeaveTypeRoute() {
           <Form method="post" className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="organizationId">Organization ID</Label>
-              <Input id="organizationId" name="organizationId" placeholder="UUID" required />
+              <Input id="organizationId" name="organizationId" placeholder="UUID" required defaultValue={loader?.orgId ?? ""} />
             </div>
             <div className="grid gap-2 md:grid-cols-2">
               <div className="grid gap-2">
@@ -103,15 +128,10 @@ export default function NewLeaveTypeRoute() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="employeeType">Employee Type</Label>
-                <Select name="employeeType" defaultValue="FULL_TIME">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="FULL_TIME">Full-time</SelectItem>
-                    <SelectItem value="PART_TIME">Part-time</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select name="employeeType" defaultValue="FULL_TIME" className="border rounded h-9 px-2">
+                  <option value="FULL_TIME">Full-time</option>
+                  <option value="PART_TIME">Part-time</option>
+                </select>
               </div>
             </div>
             <div className="grid gap-2">

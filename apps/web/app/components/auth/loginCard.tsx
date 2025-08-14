@@ -12,12 +12,14 @@ import {
 export default function LoginCard() {
   // Ensure backend URL always points somewhere valid in dev
   const backendBaseUrl =
-    (import.meta.env.VITE_BACKEND_BASE_URL?.replace(/\/$/, "") as string | undefined) ||
-    "http://127.0.0.1:8787";
+    (import.meta.env.VITE_BACKEND_BASE_URL?.replace(/\/$/, "") as
+      | string
+      | undefined) || "http://127.0.0.1:8787";
 
   const frontendCallbackUrl =
     import.meta.env.VITE_FRONTEND_CALLBACK_URL ||
     "http://127.0.0.1:5173/authCallback";
+    // "http://127.0.0.1:8787/api/v1/auth/google/callback";
 
   // Add prompt=select_account to encourage Google to show the account picker
   const googleAuthUrl = `${backendBaseUrl}/api/v1/auth/google/start?redirect_uri=${encodeURIComponent(

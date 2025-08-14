@@ -15,7 +15,9 @@ export default [
   // main app route
   layout("layouts/main.tsx", [
     route("/dashboard", "routes/admin/admin-dashboard.tsx"),
+
     route("/admin/leave-types/new", "routes/admin/leave-types.new.tsx"),
+
     route("/groups", "routes/admin/groups-management.tsx"),
     route("/team-requests", "routes/admin/team-requests.tsx"),
     // route("/dashboard", "routes/dashboard.tsx"),

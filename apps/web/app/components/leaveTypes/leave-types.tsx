@@ -89,6 +89,7 @@ function LeaveTypeOverview({ leaveTypes }: { leaveTypes: LeaveTypeDto[] }) {
                 setOpen(true);
               }}
             >
+
               <PlusCircle className="size-4" />{" "}
               <div className="hidden lg:block ml-2">Add Leave Type</div>
             </Button>
@@ -175,6 +176,7 @@ function LeaveTypeOverview({ leaveTypes }: { leaveTypes: LeaveTypeDto[] }) {
           {actionData && !actionData.ok && actionData.message ? (
             <div className="col-span-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
               {actionData.message}
+
             </div>
           ) : null}
           <div className="col-span-2 flex justify-end gap-2">

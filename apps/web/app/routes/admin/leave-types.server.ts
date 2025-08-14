@@ -1,6 +1,13 @@
-import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from "react-router-dom";
+import {
+  redirect,
+  type LoaderFunctionArgs,
+  type ActionFunctionArgs,
+} from "react-router-dom";
 import { getSession } from "~/lib/session.server";
-import { getLeaveTypes as apiGetLeaveTypes, createLeaveType as apiCreateLeaveType } from "~/lib/api/leaveTypes/leave-types";
+import {
+  getLeaveTypes as apiGetLeaveTypes,
+  createLeaveType as apiCreateLeaveType,
+} from "~/lib/api/leaveTypes/leave-types";
 
 export type LeaveTypeDto = {
   id: string;
@@ -25,7 +32,10 @@ export async function loadLeaveTypes(request: Request) {
   return list as LeaveTypeDto[];
 }
 
-export async function createLeaveTypeFromForm(request: Request, form: FormData) {
+export async function createLeaveTypeFromForm(
+  request: Request,
+  form: FormData
+) {
   const cookie = request.headers.get("Cookie");
   const session = await getSession(cookie);
   const apiKey = session.get("apiKey") as string | undefined;
@@ -37,7 +47,9 @@ export async function createLeaveTypeFromForm(request: Request, form: FormData) 
   const shortCode = String(form.get("shortCode") || "").trim();
   const description = String(form.get("description") || "").trim() || undefined;
   const icon = String(form.get("icon") || "").trim() || undefined;
-  const employeeType = (String(form.get("employeeType") || "FULL_TIME") as "FULL_TIME" | "PART_TIME");
+  const employeeType = String(form.get("employeeType") || "FULL_TIME") as
+    | "FULL_TIME"
+    | "PART_TIME";
   const isLimited = String(form.get("isLimited") || "no") === "yes";
   const limitTypeRaw = String(form.get("limitType") || "").trim();
   const limitDaysRaw = String(form.get("limitDays") || "").trim();
@@ -57,11 +69,13 @@ export async function createLeaveTypeFromForm(request: Request, form: FormData) 
   };
   if (isLimited) {
     const limitDays = limitDaysRaw ? Number(limitDaysRaw) : undefined;
-    const limitType = (limitTypeRaw || undefined) as undefined | "YEAR" | "QUARTER" | "MONTH";
+    const limitType = (limitTypeRaw || undefined) as
+      | undefined
+      | "YEAR"
+      | "QUARTER"
+      | "MONTH";
     Object.assign(payload, { limitDays, limitType });
   }
 
   await apiCreateLeaveType({ apiKey, leaveType: payload });
 }
-
-

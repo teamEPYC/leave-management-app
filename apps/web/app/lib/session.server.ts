@@ -2,7 +2,7 @@ import { createCookieSessionStorage } from "react-router";
 
 declare const process: { env?: Record<string, string | undefined> } | undefined;
 
-// Resolve cookie secret from multiple sources without depending on Node typings
+// Resolve cookie secret 
 let AUTH_COOKIE_SECRET = "dev-auth-cookie-secret-change-me";
 try {
   const fromNode = process?.env?.AUTH_COOKIE_SECRET;

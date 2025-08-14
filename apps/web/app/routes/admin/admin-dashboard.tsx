@@ -31,7 +31,7 @@ import { LeaveHistoryItem } from "~/components/myLeaves/LeaveHistoryItem";
 import { LeaveTypeOverview } from "~/components/leaveTypes/leave-types";
 import { DashboardStatCard } from "~/components/dashboard/dashboard-stat-card";
 import { QuickActionsCard } from "~/components/dashboard/adminDashboard/QuickActionsCard";
-import { loadLeaveTypes, createLeaveTypeFromForm, type LeaveTypeDto } from "./leave-types.server";
+import { loadLeaveTypes, createLeaveTypeFromForm, updateLeaveTypeFromForm, deleteLeaveTypeFromForm, type LeaveTypeDto } from "./leave-types.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const list = await loadLeaveTypes(request);
@@ -42,9 +42,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData();
   const intent = String(form.get("_action") || "");
-  if (intent !== "createLeaveType") return redirect("/dashboard");
-  const res = await createLeaveTypeFromForm(request, form);
-  if (res instanceof Response) return res;
+  if (intent === "createLeaveType") {
+    const res = await createLeaveTypeFromForm(request, form);
+    if (res instanceof Response) return res;
+    if (!res?.ok) {
+      return new Response(JSON.stringify(res), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
+  if (intent === "updateLeaveType") {
+    const res = await updateLeaveTypeFromForm(request, form);
+    if (res instanceof Response) return res;
+    if (!res?.ok) {
+      return new Response(JSON.stringify(res), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
+  if (intent === "deleteLeaveType") {
+    const res = await deleteLeaveTypeFromForm(request, form);
+    if (res instanceof Response) return res;
+    if (!res?.ok) {
+      return new Response(JSON.stringify(res), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
   return redirect("/dashboard");
 }
 

@@ -29,6 +29,9 @@ import {
   SidebarSeparator,
 } from "../ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getSessionUser } from "~/lib/session";
+import LogoutButton from "~/components/auth/logoutButton";
 import { Outlet } from "react-router";
 
 // Menu items configuration
@@ -87,6 +90,36 @@ const items = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const [name, setName] = useState<string | undefined>(undefined);
+  const [email, setEmail] = useState<string | undefined>(undefined);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+  const [orgName, setOrgName] = useState<string | undefined>(undefined);
+  const [role, setRole] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const load = () => {
+      const u = getSessionUser();
+      setName(u?.name ?? undefined);
+      setEmail(u?.email ?? undefined);
+      setAvatarUrl(u?.avatarUrl ?? undefined);
+      try {
+        const raw = window.localStorage.getItem("lm_org");
+        if (raw) {
+          const o = JSON.parse(raw);
+          setOrgName(o?.name ?? undefined);
+          setRole(o?.role ?? undefined);
+        }
+      } catch {}
+    };
+    load();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "lm_user") load();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [location.pathname]);
+
+  const initials = (name || email || "").split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase()).join("") || "?";
 
   return (
     <Sidebar className="border-r" variant="sidebar">
@@ -99,7 +132,11 @@ export function AppSidebar() {
             <h1 className="text-lg font-semibold text-secondary">
               Leave Manager
             </h1>
-            <p className="text-sm text-muted-foreground">Employee Portal</p>
+            {orgName ? (
+              <p className="text-xs text-muted-foreground">{orgName}{role ? ` • ${role}` : ""}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">Employee Portal</p>
+            )}
           </div>
         </div>
       </SidebarHeader>
@@ -132,15 +169,25 @@ export function AppSidebar() {
 
       <SidebarFooter className="bg-primary border-t p-4">
         <div className="flex items-center gap-3 rounded-lg p-3 bg-secondary">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
-            JD
-          </div>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={name || email || "User"}
+              className="h-8 w-8 rounded-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
+              {initials}
+            </div>
+          )}
           <div className="flex flex-col flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">John Doe</p>
+            <p className="text-sm font-medium truncate">{name || "Signed in"}</p>
             <p className="text-xs text-muted-foreground truncate">
-              john.doe@company.com
+              {email || "--"}
             </p>
           </div>
+          <LogoutButton />
         </div>
       </SidebarFooter>
     </Sidebar>

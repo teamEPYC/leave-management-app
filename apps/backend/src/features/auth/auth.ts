@@ -1,10 +1,11 @@
-import { WithDbAndEnv, WithEnv } from "../utils/commonTypes";
+import { WithDbAndEnv, WithEnv } from "../../utils/commonTypes";
 import * as jwt from "@tsndr/cloudflare-worker-jwt";
 import { DateTime } from "luxon";
 import { z } from "zod";
-import { ErrorCodes } from "../utils/error";
-import { getUserByEmail, getUserById } from "./user";
+// import { getUserByEmail, getUserById } from "./user";
 import bcrypt from "bcryptjs";
+import { ErrorCodes } from "../../utils/error";
+import { getUserByEmail, getUserById } from "../user";
 
 export async function createApiKey({
   env,

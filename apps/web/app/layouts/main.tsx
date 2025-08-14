@@ -10,8 +10,28 @@ import {
   BreadcrumbSeparator,
 } from "../components/ui/breadcrumb";
 import { Outlet } from "react-router";
+import { useEffect } from "react";
+import { setSessionUser } from "~/lib/session";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const userParam = params.get("user");
+      if (userParam) {
+        const u = JSON.parse(decodeURIComponent(userParam));
+        if (u && (u.name || u.email || u.avatarUrl || u.id)) {
+          setSessionUser({ id: u.id ?? null, name: u.name ?? null, email: u.email ?? null, avatarUrl: u.avatarUrl ?? null });
+        }
+        if (u && (u.organizationName || u.role)) {
+          try {
+            window.localStorage.setItem("lm_org", JSON.stringify({ name: u.organizationName ?? null, role: u.role ?? null }));
+          } catch {}
+        }
+      }
+    } catch {}
+  }, []);
+
   return (
     <SidebarProvider>
       <AppSidebar />

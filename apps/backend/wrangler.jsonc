@@ -17,10 +17,13 @@
       "hyperdrive": [
         {
           "binding": "DB",
-          "id": "<invalid_id_for_local>",
-          "localConnectionString": "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+          "id": "<invalid_id_for_local>"
         }
-      ]
+      ],
+      "vars": {
+        "GOOGLE_CLIENT_ID": "664421180698-3nec7a4f5i4ovh0odbcp3pnphla2qaj0.apps.googleusercontent.com",
+        "GOOGLE_REDIRECT_URI": "http://127.0.0.1:5173/authCallback"
+      }
     }
   }
   /**

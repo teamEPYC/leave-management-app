@@ -1,4 +1,5 @@
 import { ProgressIndicator } from "~/components/shared/progress-indicator";
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs, useLoaderData } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -30,6 +31,44 @@ import { LeaveHistoryItem } from "~/components/myLeaves/LeaveHistoryItem";
 import { LeaveTypeOverview } from "~/components/leaveTypes/leave-types";
 import { DashboardStatCard } from "~/components/dashboard/dashboard-stat-card";
 import { QuickActionsCard } from "~/components/dashboard/adminDashboard/QuickActionsCard";
+import { loadLeaveTypes, createLeaveTypeFromForm, updateLeaveTypeFromForm, deleteLeaveTypeFromForm, type LeaveTypeDto } from "./leave-types.server";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const list = await loadLeaveTypes(request);
+  if (list instanceof Response) return list; // redirected
+  return { leaveTypes: list as LeaveTypeDto[] };
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const form = await request.formData();
+  const intent = String(form.get("_action") || "");
+  if (intent === "createLeaveType") {
+    const res = await createLeaveTypeFromForm(request, form);
+    if (res instanceof Response) return res;
+    if (!res?.ok) {
+      return new Response(JSON.stringify(res), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
+  if (intent === "updateLeaveType") {
+    const res = await updateLeaveTypeFromForm(request, form);
+    if (res instanceof Response) return res;
+    if (!res?.ok) {
+      return new Response(JSON.stringify(res), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
+  if (intent === "deleteLeaveType") {
+    const res = await deleteLeaveTypeFromForm(request, form);
+    if (res instanceof Response) return res;
+    if (!res?.ok) {
+      return new Response(JSON.stringify(res), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
+  return redirect("/dashboard");
+}
+
 
 // mock data
 const recentLeaves = [
@@ -94,6 +133,7 @@ const stats = [
 ];
 
 export default function AdminDashboard() {
+  const data = useLoaderData() as { leaveTypes: LeaveTypeDto[] };
   return (
     <div className="space-y-6">
       <div>
@@ -146,7 +186,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
         <div className="col-span-6">
-          <LeaveTypeOverview />
+          <LeaveTypeOverview leaveTypes={data.leaveTypes} />
         </div>
       </div>
 

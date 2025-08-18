@@ -7,10 +7,11 @@ import { Plus } from "lucide-react";
 import { DataTable } from "~/components/ui/data-table";
 import { UserStatusBadge } from "~/components/shared/user-status-badge";
 import { UserDetailsSheet } from "~/components/userManagement/user-details-sheet";
-import { mockUsers } from "~/components/userManagement/mock-users";
 import { requireRole } from "~/lib/auth/route-guards";
-import { useLocation, useNavigate, useNavigation } from "react-router-dom";
-import { AdminDashboardSkeleton, TableSkeleton } from "~/components/shared/dashboard-skeleton";
+import { useNavigation, useLoaderData } from "react-router-dom";
+import { AdminDashboardSkeleton } from "~/components/shared/dashboard-skeleton";
+import { getOrganizationUsers, type OrganizationUser } from "~/lib/api/organization/users";
+import { getSession } from "~/lib/session.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Check if user has access to admin routes - optimized for performance
@@ -19,18 +20,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return roleCheck; // Redirect response
   }
 
-  return { users: mockUsers };
+  // Get organization users
+  const session = await getSession(request.headers.get("Cookie"));
+  const apiKey = session.get("apiKey") as string | undefined;
+  const currentOrgId = session.get("currentOrgId") as string | undefined;
+
+  if (!apiKey || !currentOrgId) {
+    return { users: [] };
+  }
+
+  try {
+    const response = await getOrganizationUsers(currentOrgId, apiKey);
+    return { users: response.data };
+  } catch (error) {
+    console.error("Failed to fetch organization users:", error);
+    return { users: [] };
+  }
 }
 
-export type User = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  groups: string[];
-  status: "Active" | "Inactive";
-  leaves?: string[];
-};
+export type User = OrganizationUser;
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -38,15 +46,24 @@ export const columns: ColumnDef<User>[] = [
     header: "Name",
     cell: ({ row }) => {
       const name = row.getValue("name") as string;
+      const image = row.original.image;
       return (
         <div className="flex items-center gap-2 px-2">
-          <img
-            src={`https://api.dicebear.com/6.x/initials/svg?seed=${encodeURIComponent(
-              name
-            )}`}
-            alt={name}
-            className="w-8 h-8 rounded-full"
-          />
+          {image ? (
+            <img
+              src={image}
+              alt={name}
+              className="w-8 h-8 rounded-full"
+            />
+          ) : (
+            <img
+              src={`https://api.dicebear.com/6.x/initials/svg?seed=${encodeURIComponent(
+                name
+              )}`}
+              alt={name}
+              className="w-8 h-8 rounded-full"
+            />
+          )}
           <span>{name}</span>
         </div>
       );
@@ -61,49 +78,56 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "role",
+    accessorKey: "roleName",
     header: "Role",
     cell: ({ row }) => {
-      const role = row.getValue("role") as string;
-      return <div className="flex items-center gap-2 px-2">{role}</div>;
-    },
-  },
-  {
-    accessorKey: "groups",
-    header: "Groups",
-    cell: ({ row }) => {
-      const groups = row.getValue("groups") as string[];
+      const roleName = row.getValue("roleName") as string;
+      const isOwner = row.original.isOwner;
       return (
-        <div className="flex flex-wrap gap-1 p-1">
-          {groups.map((group) => (
-            <Badge key={group} variant="secondary">
-              {group}
-            </Badge>
-          ))}
+        <div className="flex items-center gap-2 px-2">
+          <Badge variant={isOwner ? "default" : "secondary"}>
+            {roleName}
+          </Badge>
         </div>
       );
     },
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "employeeType",
+    header: "Type",
     cell: ({ row }) => {
-      const status = row.getValue("status") as "Active" | "Inactive";
-      return <UserStatusBadge className="" status={status} />;
+      const employeeType = row.getValue("employeeType") as "FULL_TIME" | "PART_TIME";
+      return (
+        <div className="flex items-center gap-2 px-2">
+          <Badge variant="outline">
+            {employeeType === "FULL_TIME" ? "Full Time" : "Part Time"}
+          </Badge>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "joinedAt",
+    header: "Joined",
+    cell: ({ row }) => {
+      const joinedAt = row.getValue("joinedAt") as string;
+      return (
+        <div className="flex items-center gap-2 px-2">
+          {new Date(joinedAt).toLocaleDateString()}
+        </div>
+      );
     },
   },
 ];
 
 export default function UserManagementPage() {
-  // Loading state
   const navigation = useNavigation();
-  const location = useLocation();
+  const { users } = useLoaderData<typeof loader>();
 
-  // Only show skeleton when loading and staying on current route
-  if (navigation.state === "loading" && 
-      (!navigation.location || navigation.location.pathname === location.pathname)) {
-    return <TableSkeleton />;
+  if (navigation.state === "loading") {
+    return <AdminDashboardSkeleton />;
   }
+
   // for side sheet
   const [open, setOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
@@ -131,7 +155,7 @@ export default function UserManagementPage() {
       {/* Table */}
       <DataTable
         columns={columns}
-        data={mockUsers}
+        data={users}
         searchKey="name"
         onRowClick={handleRowClick}
       />

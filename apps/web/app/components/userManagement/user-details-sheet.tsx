@@ -26,12 +26,16 @@ import { EditableProgressIndicator } from "./EditableProgressIndicator";
 import { UserAccessEditor } from "./UserAccessEditor";
 
 interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  role: string;
-  groups: string[];
-  status: "Active" | "Inactive";
+  image: string | null;
+  phone: string | null;
+  employeeType: "FULL_TIME" | "PART_TIME";
+  roleId: string;
+  isOwner: boolean;
+  roleName: string;
+  joinedAt: string;
 }
 
 // mock for prog indicator
@@ -127,11 +131,10 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
           <div className="flex flex-col p-4 gap-4 overflow-auto">
             {/* Name with favicon of user */}
             <div className="flex flex-row gap-4 text-xl font-bold items-center ">
-              <Avatar className="size-15">
-                {/* replave with user.favicon */}
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
+                          <Avatar className="size-15">
+              <AvatarImage src={user.image || undefined} />
+              <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+            </Avatar>
               <div className="">
                 <div>{user.name}</div>
                 <div className="text-sm font-light text-muted-foreground">
@@ -141,14 +144,14 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
             </div>
             {/* Groups and Role */}
             <div className=" p-4 ">
-              <UserAccessEditor
-                defaultRole={user.role}
-                defaultStatus={user.status}
-                defaultGroups={user.groups}
-                onChange={(updated) => {
-                  console.log("Updated Access:", updated);
-                }}
-              />
+                          <UserAccessEditor
+              defaultRole={user.roleName}
+              defaultStatus="Active"
+              defaultGroups={[]}
+              onChange={(updated) => {
+                console.log("Updated Access:", updated);
+              }}
+            />
             </div>
             {/* User detail card */}
             <Card className="rounded border-0 shadow-none">

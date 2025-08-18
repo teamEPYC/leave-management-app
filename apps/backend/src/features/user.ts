@@ -309,3 +309,35 @@ export async function getUserOrganizations({
     .innerJoin(OrganizationTable, eq(UserOrganizationTable.organizationId, OrganizationTable.id))
     .where(eq(UserOrganizationTable.userId, userId));
 }
+
+export async function getOrganizationUsers({
+  organizationId,
+  db,
+}: WithDb<{ organizationId: string }>) {
+  const result = await db
+    .select({
+      id: UserTable.id,
+      email: UserTable.email,
+      name: UserTable.name,
+      image: UserTable.image,
+      phone: UserTable.phone,
+      employeeType: UserTable.employeeType,
+      roleId: UserOrganizationTable.roleId,
+      isOwner: UserOrganizationTable.isOwner,
+      roleName: RoleTable.name,
+      joinedAt: UserOrganizationTable.createdAt,
+    })
+    .from(UserOrganizationTable)
+    .innerJoin(UserTable, eq(UserOrganizationTable.userId, UserTable.id))
+    .innerJoin(RoleTable, eq(UserOrganizationTable.roleId, RoleTable.id))
+    .where(
+      and(
+        eq(UserOrganizationTable.organizationId, organizationId),
+        eq(UserOrganizationTable.isActive, true),
+        eq(UserTable.isActive, true)
+      )
+    )
+    .orderBy(UserTable.name);
+
+  return result;
+}

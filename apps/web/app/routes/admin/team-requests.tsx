@@ -1,6 +1,7 @@
 // pages/admin/team-requests.tsx
 
 import * as React from "react";
+import type { LoaderFunctionArgs } from "react-router";
 import { DataTable } from "~/components/ui/data-table";
 // import { LeaveRequest } from "~/types/leave";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -12,6 +13,17 @@ import {
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { mockLeaveRequests } from "~/components/teamRequests/mock-leave-request";
 import DetailedLeaveView from "~/components/teamRequests/detailed-leave-view";
+import { requireRole } from "~/lib/auth/route-guards";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  // Check if user has access to admin routes - optimized for performance
+  const roleCheck = await requireRole(request, "/admin/team-requests", ["OWNER", "ADMIN"]);
+  if (roleCheck instanceof Response) {
+    return roleCheck; // Redirect response
+  }
+
+  return { leaveRequests: mockLeaveRequests };
+}
 
 export type LeaveRequest = {
   id: number;

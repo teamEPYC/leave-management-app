@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "../components/ui/sidebar";
 import { AppSidebar } from "../components/shared/app-sidebar";
 import { Separator } from "../components/ui/separator";
+import { LoadingBar } from "../components/shared/route-loading";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,8 +11,32 @@ import {
   BreadcrumbSeparator,
 } from "../components/ui/breadcrumb";
 import { Outlet } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
 import { useEffect } from "react";
 import { setSessionUser } from "~/lib/session";
+import { getSession } from "~/lib/session.server";
+import { getUserMembership } from "~/lib/api/organization/membership";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+  const apiKey = session.get("apiKey");
+  const currentOrgId = session.get("currentOrgId");
+
+  if (!apiKey || !currentOrgId) {
+    return { membership: null, userRole: null };
+  }
+
+  try {
+    const membership = await getUserMembership({ apiKey, organizationId: currentOrgId });
+    return { 
+      membership,
+      userRole: membership.role 
+    };
+  } catch (error) {
+    console.error("Failed to fetch membership:", error);
+    return { membership: null, userRole: null };
+  }
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -23,17 +48,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         if (u && (u.name || u.email || u.avatarUrl || u.id)) {
           setSessionUser({ id: u.id ?? null, name: u.name ?? null, email: u.email ?? null, avatarUrl: u.avatarUrl ?? null });
         }
-        if (u && (u.organizationName || u.role)) {
-          try {
-            window.localStorage.setItem("lm_org", JSON.stringify({ name: u.organizationName ?? null, role: u.role ?? null }));
-          } catch {}
-        }
       }
     } catch {}
   }, []);
 
   return (
     <SidebarProvider>
+      <LoadingBar />
       <AppSidebar />
       <main className="flex-1 flex flex-col min-h-screen bg-muted">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-card">
@@ -47,9 +68,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Dashboard</BreadcrumbPage>
-              </BreadcrumbItem>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
             </BreadcrumbList>
           </Breadcrumb>
         </header>

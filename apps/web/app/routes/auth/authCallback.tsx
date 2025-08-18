@@ -96,7 +96,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       session.set("currentOrgId", current.id);
       const headers = new Headers({ "Set-Cookie": await commitSession(session) });
       const userString = encodeURIComponent(
-        JSON.stringify({ id, name, email, avatarUrl, organizationName: current.name, role: "Member" })
+        JSON.stringify({ id, name, email, avatarUrl })
       );
       return redirect(`/dashboard?user=${userString}`, { headers });
     }

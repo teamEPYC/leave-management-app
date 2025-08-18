@@ -1,6 +1,7 @@
 import * as React from "react";
 import LoginCard from "~/components/auth/loginCard";
-import { Card } from "~/components/ui/card";
+import { redirect, type LoaderFunctionArgs } from "react-router";
+import { getSession } from "~/lib/session.server";
 
 export default function Login() {
   return (
@@ -8,4 +9,14 @@ export default function Login() {
       <LoginCard />
     </div>
   );
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const cookie = request.headers.get("Cookie");
+  const session = await getSession(cookie);
+  const apiKey = session.get("apiKey") as string | undefined;
+  if (apiKey) {
+    throw redirect("/dashboard");
+  }
+  return null;
 }

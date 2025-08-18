@@ -1,5 +1,6 @@
 import { Group, Plus } from "lucide-react";
 import React from "react";
+import type { LoaderFunctionArgs } from "react-router";
 import { CreateGroupCard } from "~/components/groupsManagement/create-group-card";
 import { Button } from "~/components/ui/button";
 import { mockGroups } from "~/components/groupsManagement/mock-groups";
@@ -9,6 +10,17 @@ import { UserStatusBadge } from "~/components/shared/user-status-badge";
 import { DataTable } from "~/components/ui/data-table";
 import { GroupDetailsSheet } from "~/components/groupsManagement/group-details-sheet";
 import { se } from "date-fns/locale";
+import { requireRole } from "~/lib/auth/route-guards";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  // Check if user has access to admin routes - optimized for performance
+  const roleCheck = await requireRole(request, "/admin/groups-management", ["OWNER", "ADMIN"]);
+  if (roleCheck instanceof Response) {
+    return roleCheck; // Redirect response
+  }
+
+  return { groups: mockGroups };
+}
 
 export type Group = {
   id: number;
@@ -38,6 +50,7 @@ function renderLimitedList(items: string[]) {
   const extraCount = items.length - displayItems.length;
 
   return (
+    
     <div className="flex items-center">
       {displayItems.map((item, index) => {
         const [color, setColor] = React.useState<string | null>(null);

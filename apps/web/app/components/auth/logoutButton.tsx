@@ -9,7 +9,9 @@ export default function LogoutButton() {
   const handleLogout = async () => {
     try {
       // Try to logout on backend to clear HttpOnly cookies if supported
-      const base = (import.meta.env.VITE_BACKEND_BASE_URL as string | undefined) || "http://127.0.0.1:8787";
+      const base =
+        (import.meta.env.VITE_BACKEND_BASE_URL as string | undefined) ||
+        "http://127.0.0.1:8787";
       try {
         await fetch(`${base.replace(/\/$/, "")}/api/v1/auth/logout`, {
           method: "POST",
@@ -32,11 +34,13 @@ export default function LogoutButton() {
   };
 
   return (
-    <Button onClick={handleLogout} variant="outline" size="sm" className="ml-auto">
+    <Button
+      onClick={handleLogout}
+      variant="outline"
+      size="sm"
+      className="ml-auto"
+    >
       <LogOut className="w-4 h-4" />
-      Logout
     </Button>
   );
 }
-
-

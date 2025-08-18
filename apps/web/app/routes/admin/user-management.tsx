@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { LoaderFunctionArgs } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Plus } from "lucide-react";
@@ -7,6 +8,17 @@ import { DataTable } from "~/components/ui/data-table";
 import { UserStatusBadge } from "~/components/shared/user-status-badge";
 import { UserDetailsSheet } from "~/components/userManagement/user-details-sheet";
 import { mockUsers } from "~/components/userManagement/mock-users";
+import { requireRole } from "~/lib/auth/route-guards";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  // Check if user has access to admin routes - optimized for performance
+  const roleCheck = await requireRole(request, "/user-management", ["OWNER", "ADMIN"]);
+  if (roleCheck instanceof Response) {
+    return roleCheck; // Redirect response
+  }
+
+  return { users: mockUsers };
+}
 
 export type User = {
   id: number;

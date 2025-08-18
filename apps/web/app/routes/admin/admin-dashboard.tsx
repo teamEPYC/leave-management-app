@@ -1,5 +1,5 @@
 import { ProgressIndicator } from "~/components/shared/progress-indicator";
-import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs, useLoaderData } from "react-router-dom";
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs, useLoaderData, useNavigation } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -32,8 +32,16 @@ import { LeaveTypeOverview } from "~/components/leaveTypes/leave-types";
 import { DashboardStatCard } from "~/components/dashboard/dashboard-stat-card";
 import { QuickActionsCard } from "~/components/dashboard/adminDashboard/QuickActionsCard";
 import { loadLeaveTypes, createLeaveTypeFromForm, updateLeaveTypeFromForm, deleteLeaveTypeFromForm, type LeaveTypeDto } from "./leave-types.server";
+import { requireRole } from "~/lib/auth/route-guards";
+import { AdminDashboardSkeleton } from "~/components/shared/dashboard-skeleton";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Check if user has access to admin routes - optimized for performance
+  const roleCheck = await requireRole(request, "/admin-dashboard", ["OWNER", "ADMIN"]);
+  if (roleCheck instanceof Response) {
+    return roleCheck; // Redirect response
+  }
+
   const list = await loadLeaveTypes(request);
   if (list instanceof Response) return list; // redirected
   return { leaveTypes: list as LeaveTypeDto[] };
@@ -134,6 +142,12 @@ const stats = [
 
 export default function AdminDashboard() {
   const data = useLoaderData() as { leaveTypes: LeaveTypeDto[] };
+  const navigation = useNavigation();
+
+  if (navigation.state === "loading") {
+    return <AdminDashboardSkeleton />;
+  }
+
   return (
     <div className="space-y-6">
       <div>

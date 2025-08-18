@@ -10,8 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { createLeaveType } from "~/lib/api/leaveTypes/leave-types";
 import { getSession } from "~/lib/session.server";
 import { listOrganizations } from "~/lib/api/organization/organizations";
+import { requireRole } from "~/lib/auth/route-guards";
 
 export async function loader(args: LoaderFunctionArgs) {
+  // Check if user has access to admin routes - optimized for performance
+  const roleCheck = await requireRole(args.request, "/admin/leave-types/new", ["OWNER", "ADMIN"]);
+  if (roleCheck instanceof Response) {
+    return roleCheck; // Redirect response
+  }
+
   const cookie = args.request.headers.get("Cookie");
   const session = await getSession(cookie);
   const orgId = (session.get("currentOrgId") as string | undefined) || null;

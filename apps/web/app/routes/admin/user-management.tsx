@@ -9,6 +9,8 @@ import { UserStatusBadge } from "~/components/shared/user-status-badge";
 import { UserDetailsSheet } from "~/components/userManagement/user-details-sheet";
 import { mockUsers } from "~/components/userManagement/mock-users";
 import { requireRole } from "~/lib/auth/route-guards";
+import { useLocation, useNavigate, useNavigation } from "react-router-dom";
+import { AdminDashboardSkeleton, TableSkeleton } from "~/components/shared/dashboard-skeleton";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Check if user has access to admin routes - optimized for performance
@@ -93,6 +95,15 @@ export const columns: ColumnDef<User>[] = [
 ];
 
 export default function UserManagementPage() {
+  // Loading state
+  const navigation = useNavigation();
+  const location = useLocation();
+
+  // Only show skeleton when loading and staying on current route
+  if (navigation.state === "loading" && 
+      (!navigation.location || navigation.location.pathname === location.pathname)) {
+    return <TableSkeleton />;
+  }
   // for side sheet
   const [open, setOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);

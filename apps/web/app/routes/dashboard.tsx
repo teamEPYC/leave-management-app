@@ -28,6 +28,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Dashboard() {
+  // const navigation = useNavigation();
+  // const location = useLoaderData();
+
+  // // Only show skeleton when loading and staying on current route
+  // if (navigation.state === "loading" && 
+  //     (!navigation.location || navigation.location.pathname === location.pathname)) {
+  //   return <DashboardSkeleton />;
+  // }
   const navigation = useNavigation();
   
   // Show skeleton while loading

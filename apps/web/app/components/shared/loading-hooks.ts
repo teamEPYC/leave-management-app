@@ -29,7 +29,7 @@ export function useLoadingState() {
   };
 
   const updateProgress = (newProgress: number) => {
-    setProgress(Math.min(100, Math.max(0, newProgress));
+    setProgress(Math.min(100, Math.max(0, newProgress)));
   };
 
   const simulateProgress = (duration: number = 2000) => {

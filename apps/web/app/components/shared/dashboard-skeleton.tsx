@@ -54,16 +54,19 @@ export function DashboardSkeleton() {
 }
 
 // Admin dashboard skeleton
+
 export function AdminDashboardSkeleton() {
   return (
     <div className="space-y-6">
+      {/* Header section */}
       <div>
         <Skeleton className="h-8 w-48 mb-2" />
         <Skeleton className="h-4 w-64" />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+      {/* Stats cards grid - 2-3 columns */}
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="p-6 border rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <Skeleton className="h-4 w-24" />
@@ -75,32 +78,90 @@ export function AdminDashboardSkeleton() {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-12">
-        <div className="col-span-6 p-6 border rounded-lg">
-          <Skeleton className="h-6 w-32 mb-2" />
-          <Skeleton className="h-4 w-48 mb-4" />
+      {/* Main content grid - 12 columns */}
+      <div className="grid gap-4 lg:grid-cols-12 rounded">
+        {/* Pending Team Requests - Full width card */}
+        <div className="col-span-12 p-6 border rounded-lg border-0">
+          {/* Card header with buttons */}
+          <div className="flex justify-between mb-4">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-28 rounded" />
+              <Skeleton className="h-10 w-20 rounded" />
+            </div>
+          </div>
+          
+          {/* Pending requests list */}
           <div className="space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-2 w-2 rounded-full" />
-                <div className="flex-1 space-y-1">
+              <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="flex-1 space-y-2">
                   <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-16 rounded" />
+                  <Skeleton className="h-8 w-16 rounded" />
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="col-span-6 p-6 border rounded-lg">
-          <Skeleton className="h-6 w-24 mb-2" />
-          <Skeleton className="h-4 w-40 mb-4" />
-          <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="p-4 border rounded-lg">
-                <Skeleton className="h-4 w-32 mb-2" />
-                <Skeleton className="h-3 w-48" />
+        {/* Leave Type Overview - 6 columns */}
+        <div className="col-span-6 p-6 border rounded-lg border-0">
+          <div className="mb-4">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-3 border rounded">
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                <Skeleton className="h-8 w-12" />
               </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom grid - 12 columns */}
+      <div className="grid gap-4 lg:grid-cols-12 rounded">
+        {/* My Leaves - 6 columns */}
+        <div className="col-span-6 border rounded-lg border-0">
+          <div className="p-6 border-b border-muted">
+            <Skeleton className="h-6 w-24 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          
+          <div className="divide-y">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Actions Card - 6 columns */}
+        <div className="col-span-6 p-6 border rounded-lg border-0">
+          <Skeleton className="h-6 w-32 mb-4" />
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded" />
             ))}
           </div>
         </div>

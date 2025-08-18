@@ -1,5 +1,5 @@
 import { ProgressIndicator } from "~/components/shared/progress-indicator";
-import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs, useLoaderData, useNavigation } from "react-router-dom";
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs, useLoaderData, useNavigation, useLocation } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -143,8 +143,11 @@ const stats = [
 export default function AdminDashboard() {
   const data = useLoaderData() as { leaveTypes: LeaveTypeDto[] };
   const navigation = useNavigation();
+  const location = useLocation();
 
-  if (navigation.state === "loading") {
+  // Only show skeleton when loading and staying on current route
+  if (navigation.state === "loading" && 
+      (!navigation.location || navigation.location.pathname === location.pathname)) {
     return <AdminDashboardSkeleton />;
   }
 

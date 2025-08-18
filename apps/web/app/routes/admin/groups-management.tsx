@@ -1,6 +1,6 @@
 import { Group, Plus } from "lucide-react";
 import React from "react";
-import type { LoaderFunctionArgs } from "react-router";
+import type { LoaderFunctionArgs } from "react-router-dom";
 import { CreateGroupCard } from "~/components/groupsManagement/create-group-card";
 import { Button } from "~/components/ui/button";
 import { mockGroups } from "~/components/groupsManagement/mock-groups";
@@ -11,6 +11,7 @@ import { DataTable } from "~/components/ui/data-table";
 import { GroupDetailsSheet } from "~/components/groupsManagement/group-details-sheet";
 import { se } from "date-fns/locale";
 import { requireRole } from "~/lib/auth/route-guards";
+import { TableSkeleton } from "~/components/shared/dashboard-skeleton";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Check if user has access to admin routes - optimized for performance
@@ -49,8 +50,7 @@ function renderLimitedList(items: string[]) {
   const displayItems = items.slice(0, 2);
   const extraCount = items.length - displayItems.length;
 
-  return (
-    
+  return (    
     <div className="flex items-center">
       {displayItems.map((item, index) => {
         const [color, setColor] = React.useState<string | null>(null);
@@ -118,7 +118,7 @@ export const groupColumns: ColumnDef<Group>[] = [
   },
 ];
 
-export default function GroupsManagementPage() {
+export default function GroupsManagementPage() {  
   // for side sheet
   const [open, setOpen] = React.useState(false);
   const [selectedGroup, setSelectedGroup] = React.useState<Group | null>(null);
@@ -130,6 +130,7 @@ export default function GroupsManagementPage() {
 
   return (
     <div className="space-y-4">
+      {/* <TableSkeleton/> */}
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="">

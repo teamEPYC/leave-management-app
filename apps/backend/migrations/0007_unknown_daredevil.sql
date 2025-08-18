@@ -1,1 +1,0 @@
-ALTER TABLE "leave_types" ADD COLUMN "employee_type" "employee_type" DEFAULT 'FULL_TIME' NOT NULL;

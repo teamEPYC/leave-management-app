@@ -1,15 +1,8 @@
 import bcrypt from "bcryptjs";
 import { WithDb } from "../utils/commonTypes";
-import { InvitationTable, RoleTable, UserOrganizationTable, UserTable } from "./db/schema";
-import { and, eq, gt } from "drizzle-orm";
+import { UserTable } from "./db/schema";
+import { eq } from "drizzle-orm";
 import { ErrorCodes } from "../utils/error";
-
-
-type OrgRoleCheckArgs = {
-  db: ReturnType<typeof import("./db/connect").connectDb>;
-  userId: string;
-  organizationId: string;
-};
 
 const UserSelectInfo = {
   basic: {
@@ -19,13 +12,15 @@ const UserSelectInfo = {
     id: UserTable.id,
     email: UserTable.email,
     name: UserTable.name,
+    company: UserTable.company,
   },
   withPassword: {
     id: UserTable.id,
+    passwordHash: UserTable.passwordHash,
   },
 };
-
 export async function createUser({
+  company,
   email,
   name,
   plainTextPassword,
@@ -41,10 +36,10 @@ export async function createUser({
   const user = await db
     .insert(UserTable)
     .values({
+      company,
       email,
       name,
-      roleId: null,
-      organizationId: null,
+      passwordHash: hashedPassword,
     })
     .onConflictDoNothing({
       target: [UserTable.email],
@@ -68,11 +63,7 @@ export async function getUserByEmail({
   db,
 }: WithDb<{ email: string; selectInfo?: typeof UserSelectInfo }>) {
   const user = await db
-    .select({
-      id: UserTable.id,
-      email: UserTable.email,
-      name: UserTable.name,
-    })
+    .select(UserSelectInfo.withPassword)
     .from(UserTable)
     .where(eq(UserTable.email, email));
 
@@ -88,11 +79,7 @@ export async function getUserById({
   db,
 }: WithDb<{ id: string; selectInfo?: typeof UserSelectInfo }>) {
   const user = await db
-    .select({
-      id: UserTable.id,
-      email: UserTable.email,
-      name: UserTable.name,
-    })
+    .select(UserSelectInfo.info)
     .from(UserTable)
     .where(eq(UserTable.id, id));
 
@@ -101,140 +88,4 @@ export async function getUserById({
   }
 
   return user[0];
-}
-
-
-
-export async function getUserRole({
-  db,
-  userId,
-  organizationId,
-}: OrgRoleCheckArgs): Promise<{
-  isOwner: boolean;
-  isAdmin: boolean;
-  isEmployee: boolean;
-  hasAccess: boolean;
-}> {
-  // Get user’s role in the org
-  const membership = await db
-    .select({
-      roleName: RoleTable.name,
-    })
-    .from(UserOrganizationTable)
-    .innerJoin(RoleTable, eq(UserOrganizationTable.roleId, RoleTable.id))
-    .where(
-      and(
-        eq(UserOrganizationTable.userId, userId),
-        eq(UserOrganizationTable.organizationId, organizationId)
-      )
-    )
-    .limit(1);
-
-  const role = membership[0]?.roleName;
-
-  const isOwner = role === "OWNER";
-  const isAdmin = role === "ADMIN";
-  const isEmployee = role === "EMPLOYEE";
-
-  return {
-    isOwner,
-    isAdmin,
-    isEmployee,
-    hasAccess: !!role,
-  };
-}
-
-
-export async function getRoleIdByName({
-  db,
-  roleName,
-}: WithDb<{ roleName: "OWNER" | "ADMIN" | "EMPLOYEE" }>) {
-  const res = await db
-    .select({ id: RoleTable.id })
-    .from(RoleTable)
-    .where(eq(RoleTable.name, roleName))
-    .limit(1);
-
-  if (res.length === 0) {
-    throw new Error(`Role '${roleName}' not found`);
-  }
-
-  return res[0].id;
-}
-
-
-
-export async function getValidInvitation({
-  db,
-  organizationId,
-  email,
-  invitationId,
-}: {
-  db: ReturnType<typeof import("./db/connect").connectDb>;
-  organizationId: string;
-  email: string;
-  invitationId?: string;
-}) {
-  const conditions = [
-    eq(InvitationTable.organizationId, organizationId),
-    eq(InvitationTable.email, email.toLowerCase()),
-    eq(InvitationTable.status, "SENT"),
-    gt(InvitationTable.expiresAt, new Date()),
-  ];
-
-  if (invitationId) {
-    conditions.push(eq(InvitationTable.id, invitationId));
-  }
-
-  const invites = await db
-    .select()
-    .from(InvitationTable)
-    .where(and(...conditions))
-    .limit(1);
-
-  return invites.length > 0 ? invites[0] : null;
-}
-
-
-export async function addUserToOrganization({
-  db,
-  userId,
-  organizationId,
-  roleId,
-  isOwner = false,
-}: WithDb<{
-  userId: string;
-  organizationId: string;
-  roleId: string;
-  isOwner?: boolean;
-}>) {
-  return db.insert(UserOrganizationTable).values({
-    userId,
-    organizationId,
-    roleId,
-    isOwner,
-  });
-}
-
-
-
-
-// TODO: check user already in organization
-export async function isUserAlreadyInOrganization({
-  db,
-  email,
-  organizationId,
-}: WithDb<{ email: string; organizationId: string }>): Promise<boolean> {
-  // 1. Check if user exists
-  const existingUser = await getUserByEmail({ db, email });
-  if (!existingUser) return false;
-
-  // 2. Check membership
-  const { hasAccess } = await getUserRole({
-    db,
-    userId: existingUser.id,
-    organizationId,
-  });
-
-  return hasAccess;
 }

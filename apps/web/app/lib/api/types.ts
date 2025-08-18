@@ -4,1140 +4,247 @@
  */
 
 export interface paths {
-  "/api/v1/organization": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign up for a new account */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /** Format: email */
+                        email: string;
+                        name: string;
+                        company: string;
+                        plainTextPassword: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Successfull Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                            data: {
+                                apiKey: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Client error */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: false;
+                            /** @enum {string} */
+                            errorCode: "EMAIL_ALREADY_IN_USE";
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Something went wrong */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: false;
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": {
-            name: string;
-            description: string;
-            domain: string;
-          };
-        };
-      };
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                organizationId: string;
-              };
+        get?: never;
+        put?: never;
+        /** Login to the application */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
             };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        email: string;
+                        plainTextPassword: string;
+                    };
+                };
             };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
+            responses: {
+                /** @description Successfull Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                            data: {
+                                apiKey: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Client error */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: false;
+                            /** @enum {string} */
+                            errorCode: "INVALID_EMAIL_OR_PASSWORD";
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Something went wrong */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: false;
+                            error: string;
+                        };
+                    };
+                };
             };
-          };
         };
-      };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/organization/:id": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/auth/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get information about the current user */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "x-api-key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfull Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                            data: {
+                                id: string;
+                                email: string;
+                                name: string;
+                                company: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: false;
+                            /** @enum {string} */
+                            errorCode: "INVALID_API_KEY";
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Something went wrong */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: false;
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": {
-            name?: string;
-            description?: string;
-            icon?: string;
-            domain?: string | null;
-            setting?: {
-              [key: string]: unknown;
-            } | null;
-          };
-        };
-      };
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                organizationId: string;
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                organizationId: string;
-                deactivatedAt: string;
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/organization/list": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query: {
-          email: string;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                id: string;
-                name: string;
-                description: string;
-                domain: string;
-                icon: string | null;
-              }[];
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/organization/:orgId/invite": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path: {
-          orgId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": {
-            /** Format: email */
-            email: string;
-            /** Format: uuid */
-            roleId?: string;
-            groups?: string[];
-          };
-        };
-      };
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                invitationId: string;
-                expiresAt: string;
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/organization/:orgId/join": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path: {
-          orgId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": {
-            /** Format: uuid */
-            invitationId?: string;
-          };
-        };
-      };
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                organizationId: string;
-                joinedAt: string;
-                alreadyMember: boolean;
-                /** @enum {string} */
-                joinType: "domain" | "invite";
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/group/list": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List groups for the current organization
-     * @description OWNER / ADMIN: Returns all groups in the organization. EMPLOYEE: Returns only groups they are a member of.
-     */
-    get: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                organizationId: string;
-                name: string;
-                description: string | null;
-                icon: string | null;
-                isActive: boolean;
-                createdAt: string;
-                updatedAt: string;
-              }[];
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/group": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": {
-            /** Format: uuid */
-            organizationId: string;
-            name: string;
-            description?: string;
-            /** Format: uri */
-            icon?: string;
-            approvalManagerIds?: string[];
-            memberIds?: string[];
-          };
-        };
-      };
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                groupId: string;
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/group/:groupId": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /**
-     * Edit a group
-     * @description Only OWNER or ADMIN can edit groups
-     */
-    put: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path: {
-          groupId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": {
-            name?: string;
-            description?: string;
-            /** Format: uri */
-            icon?: string;
-            approvalManagerIds?: string[];
-            memberIds?: string[];
-          };
-        };
-      };
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                groupId: string;
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    /**
-     * Deactivate a group
-     * @description Only OWNER or ADMIN can deactivate groups.
-     */
-    delete: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path: {
-          groupId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                groupId: string;
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/leave-type": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List all leave types for an organization
-     * @description Returns all leave types for the given organization including associated groups.
-     */
-    get: {
-      parameters: {
-        query: {
-          organizationId: string;
-        };
-        header: {
-          "x-api-key": string;
-        };
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                id: string;
-                name: string;
-                shortCode: string;
-                icon: string | null;
-                description: string | null;
-                isLimited: boolean;
-                /** @enum {string|null} */
-                limitType: "YEAR" | "QUARTER" | "MONTH" | null;
-                limitDays: string | null;
-                appliesToEveryone: boolean;
-                /** @enum {string} */
-                employeeType: "FULL_TIME" | "PART_TIME";
-                groups: {
-                  /** Format: uuid */
-                  groupId: string;
-                  groupName: string;
-                  groupIcon: string | null;
-                }[];
-              }[];
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    /**
-     * Create a leave type
-     * @description Only OWNER or ADMIN can create a leave type and assign it to groups.
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": {
-            /** Format: uuid */
-            organizationId: string;
-            name: string;
-            shortCode: string;
-            icon?: string;
-            description?: string;
-            isLimited: boolean;
-            /** @enum {string} */
-            limitType?: "YEAR" | "QUARTER" | "MONTH";
-            limitDays?: number;
-            appliesToEveryone: boolean;
-            groupIds?: string[];
-            /** @enum {string} */
-            employeeType: "FULL_TIME" | "PART_TIME";
-          };
-        };
-      };
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                leaveTypeId: string;
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/leave-type/:leaveTypeId": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /**
-     * Update an existing leave type
-     * @description OWNER or ADMIN can update any field of a leave type, including switching from everyone to group-based or vice versa.
-     */
-    put: {
-      parameters: {
-        query?: never;
-        header: {
-          "x-api-key": string;
-        };
-        path: {
-          leaveTypeId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": {
-            /** Format: uuid */
-            organizationId: string;
-            name: string;
-            shortCode: string;
-            icon?: string;
-            description?: string;
-            isLimited: boolean;
-            /** @enum {string} */
-            limitType?: "YEAR" | "QUARTER" | "MONTH";
-            limitDays?: number;
-            appliesToEveryone: boolean;
-            /** @enum {string} */
-            employeeType: "FULL_TIME" | "PART_TIME";
-            groupIds?: string[];
-          };
-        };
-      };
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                leaveTypeId: string;
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    /**
-     * Deactivate a leave type
-     * @description Marks the leave type and its associated groups as inactive so they can no longer be used. Only OWNER or ADMIN can perform this.
-     */
-    delete: {
-      parameters: {
-        query: {
-          organizationId: string;
-        };
-        header: {
-          "x-api-key": string;
-        };
-        path: {
-          leaveTypeId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Successfull Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: true;
-              data: {
-                /** Format: uuid */
-                leaveTypeId: string;
-              };
-            };
-          };
-        };
-        /** @description Unauthorized */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              /** @enum {string} */
-              errorCode: "INVALID_API_KEY";
-              error: string;
-            };
-          };
-        };
-        /** @description Something went wrong */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              /** @enum {boolean} */
-              ok: false;
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: never;
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    schemas: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

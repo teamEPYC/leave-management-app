@@ -18,12 +18,9 @@
         {
           "binding": "DB",
           "id": "<invalid_id_for_local>",
+          "localConnectionString": "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
         }
-      ],
-      "vars": {
-        "GOOGLE_CLIENT_ID": "859931764077-okrt5efoomdnu8o4r9hqie5o8tb7khb6.apps.googleusercontent.com",
-        "GOOGLE_REDIRECT_URI": "http://127.0.0.1:8787/api/v1/auth/google/callback",
-      }
+      ]
     }
   }
   /**

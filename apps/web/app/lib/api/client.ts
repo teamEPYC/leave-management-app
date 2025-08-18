@@ -1,6 +1,5 @@
 import createClient from "openapi-fetch";
-import { type paths } from "./types";
 
-export const client = createClient<paths>({
+export const client = createClient({
   baseUrl: import.meta.env.VITE_BACKEND_BASE_URL,
 });

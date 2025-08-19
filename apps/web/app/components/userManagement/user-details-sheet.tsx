@@ -23,7 +23,7 @@ import {
 import { DataTable } from "../ui/data-table";
 import Dashboard from "~/routes/dashboard";
 import { EditableProgressIndicator } from "./EditableProgressIndicator";
-import { UserAccessEditor } from "./UserAccessEditor";
+import { UserAccessEditor } from "./user-access-editor";
 
 interface User {
   id: string;
@@ -131,10 +131,12 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
           <div className="flex flex-col p-4 gap-4 overflow-auto">
             {/* Name with favicon of user */}
             <div className="flex flex-row gap-4 text-xl font-bold items-center ">
-                          <Avatar className="size-15">
-              <AvatarImage src={user.image || undefined} />
-              <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
+              <Avatar className="size-15">
+                <AvatarImage src={user.image || undefined} />
+                <AvatarFallback>
+                  {user.name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <div className="">
                 <div>{user.name}</div>
                 <div className="text-sm font-light text-muted-foreground">
@@ -144,14 +146,14 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
             </div>
             {/* Groups and Role */}
             <div className=" p-4 ">
-                          <UserAccessEditor
-              defaultRole={user.roleName}
-              defaultStatus="Active"
-              defaultGroups={[]}
-              onChange={(updated) => {
-                console.log("Updated Access:", updated);
-              }}
-            />
+              <UserAccessEditor
+                defaultRole={user.roleName}
+                defaultStatus="Active"
+                defaultGroups={[]}
+                onChange={(updated) => {
+                  console.log("Updated Access:", updated);
+                }}
+              />
             </div>
             {/* User detail card */}
             <Card className="rounded border-0 shadow-none">

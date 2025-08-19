@@ -1,9 +1,14 @@
 import bcrypt from "bcryptjs";
 import { WithDb } from "../utils/commonTypes";
-import { InvitationTable, OrganizationTable, RoleTable, UserOrganizationTable, UserTable } from "./db/schema";
+import {
+  InvitationTable,
+  OrganizationTable,
+  RoleTable,
+  UserOrganizationTable,
+  UserTable,
+} from "./db/schema";
 import { and, eq, gt } from "drizzle-orm";
 import { ErrorCodes } from "../utils/error";
-
 
 type OrgRoleCheckArgs = {
   db: ReturnType<typeof import("./db/connect").connectDb>;
@@ -42,7 +47,7 @@ export async function createUser({
     .insert(UserTable)
     .values({
       email,
-      name
+      name,
     })
     .onConflictDoNothing({
       target: [UserTable.email],
@@ -101,8 +106,6 @@ export async function getUserById({
   return user[0];
 }
 
-
-
 export async function getUserRole({
   db,
   userId,
@@ -142,7 +145,6 @@ export async function getUserRole({
   };
 }
 
-
 export async function getRoleIdByName({
   db,
   roleName,
@@ -159,8 +161,6 @@ export async function getRoleIdByName({
 
   return res[0].id;
 }
-
-
 
 export async function getValidInvitation({
   db,
@@ -193,7 +193,6 @@ export async function getValidInvitation({
   return invites.length > 0 ? invites[0] : null;
 }
 
-
 export async function addUserToOrganization({
   db,
   userId,
@@ -213,9 +212,6 @@ export async function addUserToOrganization({
     isOwner,
   });
 }
-
-
-
 
 // TODO: check user already in organization
 export async function isUserAlreadyInOrganization({
@@ -237,12 +233,6 @@ export async function isUserAlreadyInOrganization({
   return hasAccess;
 }
 
-
-
-
-
-
-
 export async function getUserWithOrganization({
   userId,
   db,
@@ -260,13 +250,15 @@ export async function getUserWithOrganization({
       isOwner: UserOrganizationTable.isOwner,
     })
     .from(UserTable)
-    .leftJoin(UserOrganizationTable, eq(UserTable.id, UserOrganizationTable.userId))
+    .leftJoin(
+      UserOrganizationTable,
+      eq(UserTable.id, UserOrganizationTable.userId)
+    )
     .where(eq(UserTable.id, userId))
     .limit(1);
 
   return result.length > 0 ? result[0] : null;
 }
-
 
 export async function getOrganizationCreator({
   organizationId,
@@ -292,7 +284,6 @@ export async function getOrganizationCreator({
   return result.length > 0 ? result[0] : null;
 }
 
-
 export async function getUserOrganizations({
   userId,
   db,
@@ -306,7 +297,10 @@ export async function getUserOrganizations({
       organizationDomain: OrganizationTable.domain,
     })
     .from(UserOrganizationTable)
-    .innerJoin(OrganizationTable, eq(UserOrganizationTable.organizationId, OrganizationTable.id))
+    .innerJoin(
+      OrganizationTable,
+      eq(UserOrganizationTable.organizationId, OrganizationTable.id)
+    )
     .where(eq(UserOrganizationTable.userId, userId));
 }
 
@@ -340,4 +334,163 @@ export async function getOrganizationUsers({
     .orderBy(UserTable.name);
 
   return result;
+}
+
+// Get available roles for an organization
+export async function getOrganizationRoles({
+  db,
+  organizationId,
+}: WithDb<{ organizationId: string }>) {
+  const roles = await db
+    .select({
+      id: RoleTable.id,
+      name: RoleTable.name,
+    })
+    .from(RoleTable)
+    .orderBy(RoleTable.name);
+
+  return roles;
+}
+
+// Create new user and add to organization
+export async function createUserInOrganization({
+  db,
+  userData,
+  organizationId,
+  createdBy,
+}: WithDb<{
+  userData: {
+    email: string;
+    name: string;
+    roleId: string;
+    employeeType: "FULL_TIME" | "PART_TIME";
+  };
+  organizationId: string;
+  createdBy: string;
+}>) {
+  // 1. Check if the person creating has permission
+  const creatorRole = await getUserRole({
+    db,
+    userId: createdBy,
+    organizationId,
+  });
+  if (!creatorRole.hasAccess) {
+    return {
+      ok: false,
+      errorCode: "INSUFFICIENT_PERMISSIONS",
+      error: "You don't have access to this organization",
+    } as const;
+  }
+
+  if (!creatorRole.isOwner && !creatorRole.isAdmin) {
+    return {
+      ok: false,
+      errorCode: "INSUFFICIENT_PERMISSIONS",
+      error: "Only OWNER or ADMIN can create users",
+    } as const;
+  }
+
+  // 2. Check if user already exists
+  const existingUser = await db
+    .select({ id: UserTable.id })
+    .from(UserTable)
+    .where(eq(UserTable.email, userData.email.toLowerCase()))
+    .limit(1);
+
+  let userId: string;
+
+  if (existingUser.length > 0) {
+    // User exists, check if already in organization
+    userId = existingUser[0].id;
+    const alreadyInOrg = await db
+      .select({ id: UserOrganizationTable.id })
+      .from(UserOrganizationTable)
+      .where(
+        and(
+          eq(UserOrganizationTable.userId, userId),
+          eq(UserOrganizationTable.organizationId, organizationId),
+          eq(UserOrganizationTable.isActive, true)
+        )
+      )
+      .limit(1);
+
+    if (alreadyInOrg.length > 0) {
+      return {
+        ok: false,
+        errorCode: "USER_ALREADY_EXISTS",
+        error: "User is already a member of this organization",
+      } as const;
+    }
+  } else {
+    // Create new user
+    const newUser = await db
+      .insert(UserTable)
+      .values({
+        email: userData.email.toLowerCase(),
+        name: userData.name,
+        employeeType: userData.employeeType,
+        isActive: true,
+      })
+      .returning({ id: UserTable.id });
+
+    if (newUser.length === 0) {
+      return {
+        ok: false,
+        errorCode: "USER_CREATION_FAILED",
+        error: "Failed to create new user",
+      } as const;
+    }
+
+    userId = newUser[0].id;
+  }
+
+  // 3. Validate role exists
+  const role = await db
+    .select({ name: RoleTable.name })
+    .from(RoleTable)
+    .where(eq(RoleTable.id, userData.roleId))
+    .limit(1);
+
+  if (role.length === 0) {
+    return {
+      ok: false,
+      errorCode: "INVALID_ROLE",
+      error: "Invalid role ID",
+    } as const;
+  }
+
+  // 4. Add user to organization
+  const userOrg = await db
+    .insert(UserOrganizationTable)
+    .values({
+      userId,
+      organizationId,
+      roleId: userData.roleId,
+      isOwner: role[0].name === "OWNER",
+      isActive: true,
+    })
+    .returning({ id: UserOrganizationTable.id });
+
+  if (userOrg.length === 0) {
+    return {
+      ok: false,
+      errorCode: "ORGANIZATION_ADDITION_FAILED",
+      error: "Failed to add user to organization",
+    } as const;
+  }
+
+  return {
+    ok: true,
+    data: {
+      userId,
+      email: userData.email,
+      name: userData.name,
+      roleName: role[0].name,
+      employeeType: userData.employeeType,
+      message:
+        existingUser.length > 0
+          ? "Existing user added to organization"
+          : "New user created and added to organization",
+    },
+  } as const;
 }

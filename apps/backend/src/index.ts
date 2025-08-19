@@ -5,6 +5,7 @@ import { connectDb } from "./features/db/connect";
 import { organizationEndpoint } from "./endpoints/organization";
 import { groupEndpoint } from "./endpoints/group";
 import { leaveTypeEndpoint } from "./endpoints/leave-type";
+import { userEndpoint } from "./endpoints/users";
 
 const app = getHono();
 
@@ -34,9 +35,8 @@ app.route("/api/v1/auth", authEndpoint);
 app.route("/api/v1/organization", organizationEndpoint);
 app.route("/api/v1/group", groupEndpoint);
 app.route("/api/v1/leave-type", leaveTypeEndpoint);
+app.route("/api/v1/users", userEndpoint);
 
 app.get("/api", Scalar({ url: "/doc", theme: "elysiajs", layout: "classic" }));
 
 export default app;
-
-

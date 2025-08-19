@@ -191,7 +191,14 @@ export function UserDetailsSheet({
                 <span className="font-semibold text-muted-foreground">
                   Employee Type:
                 </span>
-                <Badge variant="outline">
+                <Badge
+                  variant="outline"
+                  className={`rounded ${
+                    user.employeeType === "FULL_TIME"
+                      ? "bg-teal-500 text-white"
+                      : "bg-yellow-400 text-black"
+                  }`}
+                >
                   {user.employeeType === "FULL_TIME"
                     ? "Full Time"
                     : "Part Time"}

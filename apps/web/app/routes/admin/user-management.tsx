@@ -1,13 +1,28 @@
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { LoaderFunctionArgs } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Plus } from "lucide-react";
 import { DataTable } from "~/components/ui/data-table";
 import { UserStatusBadge } from "~/components/shared/user-status-badge";
 import { UserDetailsSheet } from "~/components/userManagement/user-details-sheet";
+import { mockUsers } from "~/components/userManagement/mock-users";
+import { requireRole } from "~/lib/auth/route-guards";
+import { useLocation, useNavigate, useNavigation } from "react-router-dom";
+import { AdminDashboardSkeleton, TableSkeleton } from "~/components/shared/dashboard-skeleton";
 
-type User = {
+export async function loader({ request }: LoaderFunctionArgs) {
+  // Check if user has access to admin routes - optimized for performance
+  const roleCheck = await requireRole(request, "/user-management", ["OWNER", "ADMIN"]);
+  if (roleCheck instanceof Response) {
+    return roleCheck; // Redirect response
+  }
+
+  return { users: mockUsers };
+}
+
+export type User = {
   id: number;
   name: string;
   email: string;
@@ -78,53 +93,17 @@ export const columns: ColumnDef<User>[] = [
     },
   },
 ];
-const sampleData: User[] = [
-  {
-    id: 1,
-    name: "Utkarsh",
-    email: "abd@email",
-    role: "Owner",
-    groups: ["Engineering"],
-    status: "Active",
-    leaves: ["1", "2", "3"],
-  },
-  {
-    id: 2,
-    name: "Manish",
-    email: "kjhg@email",
-    role: "Owner",
-    groups: ["Engineering", "No-Code"],
-    status: "Inactive",
-    leaves: ["16", "32", "31"],
-  },
-  {
-    id: 3,
-    name: "Mishra",
-    email: "abd@email",
-    role: "Owner",
-    groups: ["Engineering", "Leadership"],
-    status: "Active",
-    leaves: ["1", "2", "3"],
-  },
-  {
-    id: 4,
-    name: "Pizza",
-    email: "abd@email",
-    role: "Owner",
-    groups: ["Engineering", "Leadership"],
-    status: "Active",
-  },
-  {
-    id: 5,
-    name: "Jane Doe",
-    email: "jane@example.com",
-    role: "Employee",
-    groups: ["Marketing"],
-    status: "Inactive",
-  },
-];
 
 export default function UserManagementPage() {
+  // Loading state
+  const navigation = useNavigation();
+  const location = useLocation();
+
+  // Only show skeleton when loading and staying on current route
+  if (navigation.state === "loading" && 
+      (!navigation.location || navigation.location.pathname === location.pathname)) {
+    return <TableSkeleton />;
+  }
   // for side sheet
   const [open, setOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
@@ -152,7 +131,7 @@ export default function UserManagementPage() {
       {/* Table */}
       <DataTable
         columns={columns}
-        data={sampleData}
+        data={mockUsers}
         searchKey="name"
         onRowClick={handleRowClick}
       />

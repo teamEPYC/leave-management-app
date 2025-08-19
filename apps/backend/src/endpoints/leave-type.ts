@@ -6,6 +6,7 @@ import { createLeaveType } from "../features/leave-types/create";
 import { listLeaveTypes } from "../features/leave-types/list";
 import { deactivateLeaveType, updateLeaveType } from "../features/leave-types/update";
 import { handleApiErrors } from "../utils/error";
+import { calculateLeave } from "../features/leave-types/calculate-leave";
 
 export const leaveTypeEndpoint = getHono();
 
@@ -265,6 +266,70 @@ leaveTypeEndpoint.openapi(
 
             return c.json(
                 { ok: true, data: { leaveTypeId: deactivateLeaveTypeRes.data?.leaveTypeId } } as const,
+                200
+            );
+        } catch (error) {
+            return handleApiErrors(c, error);
+        }
+    }
+);
+
+
+
+leaveTypeEndpoint.openapi(
+    {
+        method: "post",
+        path: "/calculate",
+        tags: ["Leave Types"],
+        summary: "Calculate leave balances based on leave type",
+        description: "Calculates and updates leave balances for users based on the leave type settings.",
+        request: {
+            headers: ApiKeyHeaderSchema,
+            body: jsonContent(
+                z.object({
+                    organizationId: z.string().uuid(),
+                    leaveTypeId: z.string().uuid(),
+                    periodStart: z.string().date(),
+                    periodEnd: z.string().date(),
+                })
+            ),
+        },
+        responses: {
+            ...getAuthOpenApiResponse(
+                z.object({
+                    ok: z.literal(true),
+                    data: z.object({
+                        message: z.string(),
+                    }),
+                })
+            ),
+        },
+    },
+    async (c) => {
+        try {
+            const db = connectDb({ env: c.env });
+            const apiKey = c.req.valid("header")["x-api-key"];
+            const body = c.req.valid("json");
+
+            // Call the calculate leave functionality
+            const calculateLeaveRes = await calculateLeave({
+                db,
+                env: c.env,
+                apiKey,
+                input: {
+                    organizationId: body.organizationId,
+                    leaveTypeId: body.leaveTypeId,
+                    periodStart: new Date(body.periodStart),
+                    periodEnd: new Date(body.periodEnd),
+                },
+            });
+
+            if (!calculateLeaveRes.ok) {
+                return c.json(calculateLeaveRes, 400);
+            }
+
+            return c.json(
+                { ok: true, data: { message: "Leave calculated successfully." } } as const,
                 200
             );
         } catch (error) {

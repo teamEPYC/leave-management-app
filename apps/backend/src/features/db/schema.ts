@@ -20,6 +20,8 @@ export const CommonRows = {
 export const invitationStatusEnum = pgEnum("invitation_status", ["SENT", "ACCEPT"]);
 export const employeeTypeEnum = pgEnum("employee_type", ["FULL_TIME", "PART_TIME"]);
 export const leaveLimitTypeEnum = pgEnum("leave_limit_type", ["YEAR", "QUARTER", "MONTH"]);
+export const leaveStatusEnum = pgEnum("leave_status", ["PENDING", "APPROVED", "REJECTED", "CANCELLED"]);
+
 
 // ─────────────────────────────────────────────────────────────
 // Users
@@ -195,3 +197,102 @@ export const LeaveTypeGroupTable = pgTable(
     uniqueIndex("uq_leave_type_group").on(t.leaveTypeId, t.groupId),
   ]
 );
+
+
+
+// ─────────────────────────────────────────────────────────────
+// Leave Balances
+
+export const LeaveBalanceTable = pgTable("leave_balances", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserTable.id),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => OrganizationTable.id),
+  leaveTypeId: uuid("leave_type_id")
+    .notNull()
+    .references(() => LeaveTypeTable.id),
+  periodStart: timestamp("period_start", { mode: "date" }).notNull(),
+  periodEnd: timestamp("period_end", { mode: "date" }).notNull(),
+  allocatedDays: numeric("allocated_days", { precision: 5, scale: 2 }).default("0"),
+  usedDays: numeric("used_days", { precision: 5, scale: 2 }).notNull().default("0"),
+  adjustedDays: numeric("adjusted_days", { precision: 5, scale: 2 }).default("0"),
+  carriedForwardDays: numeric("carried_forward_days", { precision: 5, scale: 2 }).default("0"),
+  ...CommonRows,
+}, (t) => [
+  uniqueIndex("uq_user_leave_type_period").on(t.userId, t.leaveTypeId, t.periodStart),
+]);
+
+
+
+// ─────────────────────────────────────────────────────────────
+// Leave Balance Adjustments
+
+export const LeaveBalanceAdjustmentTable = pgTable("leave_balance_adjustments", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  leaveBalanceId: uuid("leave_balance_id")
+    .notNull()
+    .references(() => LeaveBalanceTable.id),
+  addedDays: numeric("added_days", { precision: 5, scale: 2 }).notNull(),
+  description: text("description").notNull(),
+  createdBy: uuid("created_by")
+    .notNull()
+    .references(() => UserTable.id),
+  ...CommonRows,
+}, (t) => [
+  uniqueIndex("uq_leave_balance_adjustment").on(t.leaveBalanceId, t.createdAt),
+]);
+
+
+
+// ─────────────────────────────────────────────────────────────
+// Leave Requests
+
+export const LeaveRequestTable = pgTable("leave_requests", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserTable.id),
+  leaveTypeId: uuid("leave_type_id")
+    .notNull()
+    .references(() => LeaveTypeTable.id),
+  startDate: timestamp("start_date", { mode: "date" }).notNull(),
+  endDate: timestamp("end_date", { mode: "date" }).notNull(),
+  totalDays: numeric("total_days", { precision: 5, scale: 2 }).notNull(),
+  status: leaveStatusEnum("status").notNull().default("PENDING"),
+  description: text("description"),
+  reviewedBy: uuid("reviewed_by")
+    .notNull()
+    .references(() => UserTable.id),
+  isHalfDay: boolean("is_half_day").default(false),
+  ...CommonRows,
+}, (t) => [
+  uniqueIndex("uq_user_leave_request").on(t.userId, t.leaveTypeId, t.startDate),
+]);
+
+
+
+// ─────────────────────────────────────────────────────────────
+// Holidays
+
+export const HolidayTable = pgTable("holidays", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => OrganizationTable.id),
+  date: timestamp("date", { mode: "date" }).notNull(),
+  name: text("name").notNull(),
+  ...CommonRows,
+}, (t) => [
+  uniqueIndex("uq_holiday_date").on(t.organizationId, t.date),
+]);

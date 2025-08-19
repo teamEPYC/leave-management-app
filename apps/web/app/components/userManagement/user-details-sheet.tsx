@@ -118,7 +118,7 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[1280px] max-w-[100vw] rounded-0 md:rounded-tl-2xl p-0 pb-0 overflow-auto md:overflow-hidden md:max-w-[60vw] gap-0">
-        <SheetHeader className="border-b flex flex-row items-center gap-5">
+        <SheetHeader className="border-b flex flex-col">
           <SheetTitle className="flex flex-row text-2xl text-black font-bold">
             User Details
           </SheetTitle>

@@ -1,3 +1,6 @@
+// routes/login/LoginCard.tsx
+import { Button } from "~/components/ui/button";
+import { CalendarCheckIcon, Globe } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -5,13 +8,24 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Link } from "react-router-dom";
-import { CalendarCheckIcon, Globe } from "lucide-react";
-
-const googleAuthUrl = "/dashboard";
 
 export default function LoginCard() {
+  // Ensure backend URL always points somewhere valid in dev
+  const backendBaseUrl =
+    (import.meta.env.VITE_BACKEND_BASE_URL?.replace(/\/$/, "") as
+      | string
+      | undefined) || "http://127.0.0.1:8787";
+
+  const frontendCallbackUrl =
+    import.meta.env.VITE_FRONTEND_CALLBACK_URL ||
+    "http://127.0.0.1:5173/authCallback";
+    // "http://127.0.0.1:8787/api/v1/auth/google/callback";
+
+  // Add prompt=select_account to encourage Google to show the account picker
+  const googleAuthUrl = `${backendBaseUrl}/api/v1/auth/google/start?redirect_uri=${encodeURIComponent(
+    frontendCallbackUrl
+  )}&prompt=select_account`;
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <Card className="w-full max-w-md border border-border shadow-md rounded-2xl bg-background">
@@ -27,7 +41,6 @@ export default function LoginCard() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Benefits */}
           <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
             <li>Single-click login with Google</li>
             <li>Auto-join your organization using your email domain</li>
@@ -35,20 +48,18 @@ export default function LoginCard() {
             <li>Apply and manage leaves with Slack + Email notifications</li>
           </ul>
 
-          {/* Google Sign-In */}
           <Button
             variant="outline"
             size="lg"
             className="w-full flex items-center justify-center gap-3 font-medium"
             asChild
           >
-            <Link to={googleAuthUrl}>
+            <a href={googleAuthUrl}>
               <Globe className="text-xl" />
               Continue with Google
-            </Link>
+            </a>
           </Button>
 
-          {/* Support text */}
           <p className="text-xs text-muted-foreground text-center">
             Only users with a valid organization email can join. Your data stays
             secure.

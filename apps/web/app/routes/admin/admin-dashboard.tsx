@@ -1,4 +1,5 @@
 import { ProgressIndicator } from "~/components/shared/progress-indicator";
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs, useLoaderData, useNavigation, useLocation } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -29,6 +30,53 @@ import { RecentLeaveRequest } from "~/components/dashboard/recentLeaves/recent-l
 import { LeaveHistoryItem } from "~/components/myLeaves/LeaveHistoryItem";
 import { LeaveTypeOverview } from "~/components/leaveTypes/leave-types";
 import { DashboardStatCard } from "~/components/dashboard/dashboard-stat-card";
+import { QuickActionsCard } from "~/components/dashboard/adminDashboard/QuickActionsCard";
+import { loadLeaveTypes, createLeaveTypeFromForm, updateLeaveTypeFromForm, deleteLeaveTypeFromForm, type LeaveTypeDto } from "./leave-types.server";
+import { requireRole } from "~/lib/auth/route-guards";
+import { AdminDashboardSkeleton } from "~/components/shared/dashboard-skeleton";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  // Check if user has access to admin routes - optimized for performance
+  const roleCheck = await requireRole(request, "/admin-dashboard", ["OWNER", "ADMIN"]);
+  if (roleCheck instanceof Response) {
+    return roleCheck; // Redirect response
+  }
+
+  const list = await loadLeaveTypes(request);
+  if (list instanceof Response) return list; // redirected
+  return { leaveTypes: list as LeaveTypeDto[] };
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const form = await request.formData();
+  const intent = String(form.get("_action") || "");
+  if (intent === "createLeaveType") {
+    const res = await createLeaveTypeFromForm(request, form);
+    if (res instanceof Response) return res;
+    if (!res?.ok) {
+      return new Response(JSON.stringify(res), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
+  if (intent === "updateLeaveType") {
+    const res = await updateLeaveTypeFromForm(request, form);
+    if (res instanceof Response) return res;
+    if (!res?.ok) {
+      return new Response(JSON.stringify(res), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
+  if (intent === "deleteLeaveType") {
+    const res = await deleteLeaveTypeFromForm(request, form);
+    if (res instanceof Response) return res;
+    if (!res?.ok) {
+      return new Response(JSON.stringify(res), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
+  return redirect("/dashboard");
+}
+
 
 // mock data
 const recentLeaves = [
@@ -93,6 +141,18 @@ const stats = [
 ];
 
 export default function AdminDashboard() {
+  const data = useLoaderData() as { leaveTypes: LeaveTypeDto[] };
+  const navigation = useNavigation();
+  const location = useLocation();
+
+  // Only show skeleton when loading and staying on current route
+  if (navigation.state === "loading" && 
+      (!navigation.location || navigation.location.pathname === location.pathname)) {
+    return <AdminDashboardSkeleton />;
+  }
+
+
+
   return (
     <div className="space-y-6">
       <div>
@@ -145,7 +205,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
         <div className="col-span-6">
-          <LeaveTypeOverview />
+          <LeaveTypeOverview leaveTypes={data.leaveTypes} />
         </div>
       </div>
 
@@ -168,56 +228,7 @@ export default function AdminDashboard() {
           ))}
         </Card>
         {/* will move this somewhere else */}
-        <Card className="col-span-6 rounded border-0">
-          <CardHeader className="border-b border-muted">
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Perform actions related to users and approvals.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 rounded">
-            {[
-              {
-                Icon: <UserPlus size={28} />,
-                label: "Add New User",
-                desc: "Register a new team member",
-              },
-              {
-                Icon: <Plane size={28} />,
-                label: "Create Leave Type",
-                desc: "Define new leave categories",
-              },
-              {
-                Icon: <ArrowDownFromLineIcon size={28} />,
-                label: "Manage Approval Groups",
-                desc: "Set group-level leave policies",
-              },
-              {
-                Icon: <CircleAlert size={28} />,
-                label: "Schedule All-Hands",
-                desc: "Plan upcoming team meetings",
-              },
-              {
-                Icon: <ClipboardPlus size={28} />,
-                label: "Export Reports",
-                desc: "Download leave data reports",
-              },
-            ].map((item, idx) => (
-              <button
-                key={idx}
-                className="w-full text-left p-3 rounded border-0 hover:bg-accent transition-colors"
-              >
-                <div className="flex justify-start items-center gap-2">
-                  <div className="rounded-full p-3 bg-muted">{item.Icon}</div>
-                  <div className="flex flex-col">
-                    <p className="font-medium">{item.label}</p>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </CardContent>
-        </Card>
+        <QuickActionsCard />
       </div>
     </div>
   );

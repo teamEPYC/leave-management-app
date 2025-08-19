@@ -26,6 +26,7 @@ interface UserAccessEditorProps {
   defaultGroups: string[];
   allGroups?: string[]; // optional predefined group list
   onChange?: (data: { role: string; status: string; groups: string[] }) => void;
+  readOnly?: boolean; // Add read-only mode for display purposes
 }
 
 const defaultGroupOptions = [
@@ -41,6 +42,7 @@ export const UserAccessEditor: React.FC<UserAccessEditorProps> = ({
   defaultGroups,
   allGroups = defaultGroupOptions,
   onChange,
+  readOnly = false,
 }) => {
   const [role, setRole] = React.useState(defaultRole);
   const [status, setStatus] = React.useState(defaultStatus);
@@ -68,77 +70,106 @@ export const UserAccessEditor: React.FC<UserAccessEditorProps> = ({
         {/* Role */}
         <div className="flex flex-col gap-1">
           <span className="font-semibold">Role:</span>
-          <Select value={role} onValueChange={setRole}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Owner">Owner</SelectItem>
-              <SelectItem value="Employee">Employee</SelectItem>
-              <SelectItem value="Manager">Manager</SelectItem>
-            </SelectContent>
-          </Select>
+          {readOnly ? (
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="w-[200px] justify-center">
+                {defaultRole}
+              </Badge>
+            </div>
+          ) : (
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Owner">Owner</SelectItem>
+                <SelectItem value="Employee">Employee</SelectItem>
+                <SelectItem value="Manager">Manager</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Status */}
         <div className="flex flex-col gap-1">
           <span className="font-semibold">Status:</span>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Active">Active</SelectItem>
-              <SelectItem value="Inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
+          {readOnly ? (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="w-[200px] justify-center">
+                {defaultStatus}
+              </Badge>
+            </div>
+          ) : (
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
       {/* Groups */}
       <div className="flex flex-col gap-1">
         <span className="font-semibold">Groups:</span>
-        <div className="flex flex-wrap gap-2">
-          {groups.map((group) => (
-            <Badge
-              key={group}
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
-              {group}
-              <button
-                className="ml-1 hover:text-red-500"
-                onClick={() => handleGroupRemove(group)}
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="mt-2 w-fit">
-              + Add Group
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Search groups..." />
-              <CommandList>
-                <CommandEmpty>No group found.</CommandEmpty>
-                {allGroups.map((group) => (
-                  <CommandItem
-                    key={group}
-                    onSelect={() => handleGroupSelect(group)}
-                  >
-                    {group}
-                  </CommandItem>
-                ))}
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        {readOnly ? (
+          <div className="flex flex-wrap gap-2">
+            {defaultGroups.length > 0 ? (
+              defaultGroups.map((group) => (
+                <Badge key={group} variant="outline">
+                  {group}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-muted-foreground">No groups assigned</span>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {groups.map((group) => (
+              <Badge key={group} variant="outline">
+                {group}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2 h-auto p-0 hover:bg-transparent"
+                  onClick={() => handleGroupRemove(group)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            ))}
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  + Add Group
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search groups..." />
+                  <CommandList>
+                    <CommandEmpty>No groups found.</CommandEmpty>
+                    {allGroups
+                      .filter((group) => !groups.includes(group))
+                      .map((group) => (
+                        <CommandItem
+                          key={group}
+                          onSelect={() => handleGroupSelect(group)}
+                        >
+                          {group}
+                        </CommandItem>
+                      ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
     </div>
   );

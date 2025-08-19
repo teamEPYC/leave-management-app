@@ -144,12 +144,41 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
                 </div>
               </div>
             </div>
+
+            {/* Additional User Info */}
+            <div className="flex flex-row gap-6 text-sm">
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-muted-foreground">
+                  Employee Type:
+                </span>
+                <Badge variant="outline">
+                  {user.employeeType === "FULL_TIME"
+                    ? "Full Time"
+                    : "Part Time"}
+                </Badge>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-muted-foreground">
+                  Joined:
+                </span>
+                <span>{new Date(user.joinedAt).toLocaleDateString()}</span>
+              </div>
+              {user.phone && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-muted-foreground">
+                    Phone:
+                  </span>
+                  <span>{user.phone}</span>
+                </div>
+              )}
+            </div>
             {/* Groups and Role */}
             <div className=" p-4 ">
               <UserAccessEditor
                 defaultRole={user.roleName}
                 defaultStatus="Active"
                 defaultGroups={[]}
+                readOnly={true}
                 onChange={(updated) => {
                   console.log("Updated Access:", updated);
                 }}

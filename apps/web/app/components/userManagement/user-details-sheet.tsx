@@ -24,6 +24,8 @@ import { DataTable } from "../ui/data-table";
 import Dashboard from "~/routes/dashboard";
 import { EditableProgressIndicator } from "./EditableProgressIndicator";
 import { UserAccessEditor } from "./user-access-editor";
+import { getOrganizationRoles } from "~/lib/api/users/users";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -89,6 +91,8 @@ interface Props {
   user: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  organizationId: string;
+  apiKey: string;
 }
 
 export const columns: ColumnDef<Leaves>[] = [
@@ -118,7 +122,43 @@ export const columns: ColumnDef<Leaves>[] = [
   },
 ];
 
-export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
+export function UserDetailsSheet({
+  user,
+  open,
+  onOpenChange,
+  organizationId,
+  apiKey,
+}: Props) {
+  const [roles, setRoles] = React.useState<Array<{ id: string; name: string }>>(
+    []
+  );
+  const [isLoadingRoles, setIsLoadingRoles] = React.useState(false);
+
+  // Fetch roles when sheet opens
+  React.useEffect(() => {
+    if (open && organizationId && apiKey) {
+      fetchRoles();
+    }
+  }, [open, organizationId, apiKey]);
+
+  const fetchRoles = async () => {
+    setIsLoadingRoles(true);
+    try {
+      const response = await getOrganizationRoles(organizationId, apiKey);
+      if (response.ok) {
+        setRoles(response.data);
+      } else {
+        console.error("Failed to fetch roles:", response);
+        toast.error("Failed to fetch roles");
+      }
+    } catch (error) {
+      console.error("Failed to fetch roles:", error);
+      toast.error("Failed to fetch roles");
+    } finally {
+      setIsLoadingRoles(false);
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[1280px] max-w-[100vw] rounded-0 md:rounded-tl-2xl p-0 pb-0 overflow-auto md:overflow-hidden md:max-w-[60vw] gap-0">
@@ -178,7 +218,8 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
                 defaultRole={user.roleName}
                 defaultStatus="Active"
                 defaultGroups={[]}
-                readOnly={true}
+                availableRoles={roles}
+                readOnly={false}
                 onChange={(updated) => {
                   console.log("Updated Access:", updated);
                 }}

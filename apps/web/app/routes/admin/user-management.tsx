@@ -189,6 +189,8 @@ export default function UserManagementPage() {
         user={selectedUser}
         open={open}
         onOpenChange={setOpen}
+        organizationId={organizationId}
+        apiKey={apiKey}
       />
 
       {/* Add User Dialog */}

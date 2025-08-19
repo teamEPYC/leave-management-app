@@ -25,6 +25,7 @@ interface UserAccessEditorProps {
   defaultStatus: string;
   defaultGroups: string[];
   allGroups?: string[]; // optional predefined group list
+  availableRoles?: Array<{ id: string; name: string }>; // Add available roles from backend
   onChange?: (data: { role: string; status: string; groups: string[] }) => void;
   readOnly?: boolean; // Add read-only mode for display purposes
 }
@@ -41,6 +42,7 @@ export const UserAccessEditor: React.FC<UserAccessEditorProps> = ({
   defaultStatus,
   defaultGroups,
   allGroups = defaultGroupOptions,
+  availableRoles = [], // Default to empty array
   onChange,
   readOnly = false,
 }) => {
@@ -48,6 +50,13 @@ export const UserAccessEditor: React.FC<UserAccessEditorProps> = ({
   const [status, setStatus] = React.useState(defaultStatus);
   const [groups, setGroups] = React.useState<string[]>(defaultGroups);
   const [open, setOpen] = React.useState(false);
+
+  // Update local state when props change
+  React.useEffect(() => {
+    setRole(defaultRole);
+    setStatus(defaultStatus);
+    setGroups(defaultGroups);
+  }, [defaultRole, defaultStatus, defaultGroups]);
 
   React.useEffect(() => {
     onChange?.({ role, status, groups });
@@ -79,12 +88,23 @@ export const UserAccessEditor: React.FC<UserAccessEditorProps> = ({
           ) : (
             <Select value={role} onValueChange={setRole}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select role" />
+                <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Owner">Owner</SelectItem>
-                <SelectItem value="Employee">Employee</SelectItem>
-                <SelectItem value="Manager">Manager</SelectItem>
+                {availableRoles.length > 0 ? (
+                  availableRoles.map((roleOption) => (
+                    <SelectItem key={roleOption.id} value={roleOption.name}>
+                      {roleOption.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  // Fallback to hardcoded roles if none provided, will remove this as I dont think it is required in future
+                  <>
+                    <SelectItem value="OWNER">OWNER</SelectItem>
+                    <SelectItem value="ADMIN">ADMIN</SelectItem>
+                    <SelectItem value="EMPLOYEE">EMPLOYEE</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
           )}

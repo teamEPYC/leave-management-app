@@ -240,8 +240,9 @@ organizationEndpoint.openapi(
             body: jsonContent(
                 z.object({
                     email: z.string().email(),
-                    roleId: z.string().uuid().optional(), // Defaults to EMPLOYEE
-                    groups: z.array(z.string().uuid()).optional(), // Optional
+                    roleId: z.string().uuid().optional(),
+                    groups: z.array(z.string().uuid()).optional(),
+                    employeeType: z.enum(["FULL_TIME"]),
                 })
             ),
         },

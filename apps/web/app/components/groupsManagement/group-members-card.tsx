@@ -16,6 +16,10 @@ interface propGroupMembersCard {
 }
 
 export default function GroupMembersCard({ group }: propGroupMembersCard) {
+  // TODO: Fetch managers and members from backend when endpoints are available
+  const placeholderManagers: string[] = [];
+  const placeholderMembers: string[] = [];
+
   return (
     <div className="">
       <Card className="rounded border-0">
@@ -27,8 +31,8 @@ export default function GroupMembersCard({ group }: propGroupMembersCard) {
           {/* Approval Managers */}
           <div className="flex flex-row text-muted-foreground text-md">
             <ApprovalManagerEditor
-              managers={group?.managers || []}
-              members={group?.members || []}
+              managers={placeholderManagers}
+              members={placeholderMembers}
               onChange={(updated) => {
                 // todo -  update state or trigger save
                 console.log("Updated managers:", updated);
@@ -38,8 +42,8 @@ export default function GroupMembersCard({ group }: propGroupMembersCard) {
           {/* Team members */}
           <div className="flex flex-row text-muted-foreground text-md">
             <GroupMembersViewer
-              members={group?.members ?? []}
-              allUsers={group?.members ?? []}
+              members={placeholderMembers}
+              allUsers={placeholderMembers}
               onUpdate={(updated) => {
                 // update the group.members or sync with backend
                 console.log("Updated members:", updated);

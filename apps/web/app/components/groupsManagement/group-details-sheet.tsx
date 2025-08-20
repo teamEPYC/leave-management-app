@@ -17,35 +17,54 @@ interface Props {
   group: Group | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  organizationId: string;
+  apiKey: string;
 }
 
-export function GroupDetailsSheet({ group, open, onOpenChange }: Props) {
-  // foir status badge
-  const [status, setStatus] = React.useState<UserStatusType>("Active");
+export function GroupDetailsSheet({
+  group,
+  open,
+  onOpenChange,
+  organizationId,
+  apiKey,
+}: Props) {
+  // for status badge - use the group's actual status
+  const [status, setStatus] = React.useState<UserStatusType>(
+    group?.isActive ? "Active" : "Inactive"
+  );
+
+  // Update status when group changes
+  React.useEffect(() => {
+    setStatus(group?.isActive ? "Active" : "Inactive");
+  }, [group?.isActive]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[1280px] max-w-[100vw] rounded-0 md:rounded-tl-2xl p-0 pb-0 overflow-auto md:overflow-hidden md:max-w-[60vw] gap-0">
         <SheetHeader className="border-b flex flex-col">
-          <SheetTitle className="flex flex-row text-2xl text-black font-bold">
-            Group Detail
+          <SheetTitle className="flex-row text-2xl text-black font-bold">
+            Group Details
           </SheetTitle>
           <SheetDescription>
-            Manage {group?.groupName} Group from here{" "}
+            Manage {group?.name} Group from here
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-col p-4 gap-4 overflow-auto">
-          {/* Name with favicon of group along with team count*/}
+          {/* Name with favicon of group along with description */}
           <div className="flex flex-row gap-4 text-xl font-bold items-center ">
             <Avatar className="size-15">
-              {/* replace with group.favicon */}
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>CN</AvatarFallback>
+              {/* replace with group.icon when available */}
+              <AvatarImage
+                src={group?.icon || "https://github.com/shadcn.png"}
+              />
+              <AvatarFallback>
+                {group?.name?.substring(0, 2).toUpperCase() || "GP"}
+              </AvatarFallback>
             </Avatar>
             <div className="">
-              <div>{group?.groupName} Group</div>
+              <div>{group?.name} Group</div>
               <div className="text-base font-light text-muted-foreground">
-                {group?.members?.length} members
+                {group?.description || "No description"}
               </div>
             </div>
           </div>

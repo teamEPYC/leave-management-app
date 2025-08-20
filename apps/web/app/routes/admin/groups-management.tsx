@@ -1,124 +1,140 @@
 import { Group, Plus } from "lucide-react";
 import React from "react";
 import type { LoaderFunctionArgs } from "react-router-dom";
+import { useNavigation, useLoaderData, useRevalidator } from "react-router-dom";
 import { CreateGroupCard } from "~/components/groupsManagement/create-group-card";
 import { Button } from "~/components/ui/button";
-import { mockGroups } from "~/components/groupsManagement/mock-groups";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "~/components/ui/badge";
 import { UserStatusBadge } from "~/components/shared/user-status-badge";
 import { DataTable } from "~/components/ui/data-table";
 import { GroupDetailsSheet } from "~/components/groupsManagement/group-details-sheet";
-import { se } from "date-fns/locale";
 import { requireRole } from "~/lib/auth/route-guards";
-import { TableSkeleton } from "~/components/shared/dashboard-skeleton";
+import { AdminDashboardSkeleton } from "~/components/shared/dashboard-skeleton";
+import { getSession } from "~/lib/session.server";
+import { getGroups } from "~/lib/api/groups/groups";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Check if user has access to admin routes - optimized for performance
-  const roleCheck = await requireRole(request, "/admin/groups-management", ["OWNER", "ADMIN"]);
+  const roleCheck = await requireRole(request, "/admin/groups-management", [
+    "OWNER",
+    "ADMIN",
+  ]);
   if (roleCheck instanceof Response) {
     return roleCheck; // Redirect response
   }
 
-  return { groups: mockGroups };
+  // Get session data for API calls
+  const session = await getSession(request.headers.get("Cookie"));
+  const apiKey = session.get("apiKey") as string | undefined;
+  const currentOrgId = session.get("currentOrgId") as string | undefined;
+
+  if (!apiKey || !currentOrgId) {
+    return { groups: [], organizationId: "", apiKey: "" };
+  }
+
+  try {
+    console.log(
+      "🔍 Fetching groups with apiKey:",
+      apiKey ? "✅ Present" : "❌ Missing"
+    );
+    console.log("🔍 Organization ID:", currentOrgId);
+
+    // Fetch real groups from backend
+    const groupsResponse = await getGroups({ apiKey });
+    console.log("📡 Backend response:", groupsResponse);
+    console.log(
+      "📊 Groups count:",
+      Array.isArray(groupsResponse) ? groupsResponse.length : "Not an array"
+    );
+    console.log("📋 Groups data:", groupsResponse);
+
+    return {
+      groups: groupsResponse,
+      organizationId: currentOrgId,
+      apiKey,
+    };
+  } catch (error) {
+    console.error("❌ Failed to fetch groups:", error);
+    return { groups: [], organizationId: currentOrgId, apiKey };
+  }
 }
 
 export type Group = {
-  id: number;
-  groupName: string;
-  managers: string[];
-  members: string[];
-  status: "Active" | "Inactive";
+  id: string; // Changed from number to string (UUID)
+  organizationId: string;
+  name: string; // Changed from groupName to name
+  description: string | null;
+  icon: string | null;
+  isActive: boolean; // Changed from status to isActive
+  createdAt: string;
+  updatedAt: string;
+  // Note: managers and members will need to be fetched separately or added to the backend response
 };
 
-function renderLimitedList(items: string[]) {
-  if (!items?.length) return null;
-
-  const COLORS = [
-    "#EF4444",
-    "#F59E0B",
-    "#10B981",
-    "#3B82F6",
-    "#8B5CF6",
-    "#14B8A6",
-    "#EC4899",
-    "#6366F1",
-  ];
-
-  const randomColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
-
-  const displayItems = items.slice(0, 2);
-  const extraCount = items.length - displayItems.length;
-
-  return (    
-    <div className="flex items-center">
-      {displayItems.map((item, index) => {
-        const [color, setColor] = React.useState<string | null>(null);
-
-        React.useEffect(() => {
-          setColor(randomColor());
-        }, []);
-
-        return (
-          <div
-            key={item}
-            className={`flex rounded-full size-8 font-semibold text-white shadow-sm ring-2 ring-background ${
-              index > 0 ? "-ml-2" : ""
-            }`}
-            style={{ backgroundColor: color || "transparent" }}
-          >
-            <span className="m-auto text-xs">
-              {item[0]?.toUpperCase() + (item[1] || "").toUpperCase()}
-            </span>
-          </div>
-        );
-      })}
-      {extraCount > 0 && (
-        <div className="-ml-2 flex items-center justify-center rounded-full size-8 bg-muted text-muted-foreground text-xs font-medium ring-2 ring-background">
-          +{extraCount}
-        </div>
-      )}
-    </div>
-  );
-}
-
-//Will move it to new page once I get types from backend - as it will not be edited often
 export const groupColumns: ColumnDef<Group>[] = [
   {
-    accessorKey: "groupName",
+    accessorKey: "name",
     header: "Group Name",
     cell: ({ row }) => {
-      const name = row.getValue("groupName") as string;
+      const name = row.getValue("name") as string;
       return <div className="px-2 font-semibold ">{name}</div>;
     },
   },
   {
-    accessorKey: "managers",
-    header: "Managers",
+    accessorKey: "description",
+    header: "Description",
     cell: ({ row }) => {
-      const managers = row.getValue("managers") as string[];
-      return <div className="px-2">{renderLimitedList(managers)}</div>;
+      const description = row.getValue("description") as string | null;
+      return (
+        <div className="px-2 text-sm text-muted-foreground">
+          {description || "No description"}
+        </div>
+      );
     },
   },
   {
-    accessorKey: "members",
-    header: "Members",
-    cell: ({ row }) => {
-      const members = row.getValue("members") as string[];
-      return <div className="px-2">{renderLimitedList(members)}</div>;
-    },
-  },
-  {
-    accessorKey: "status",
+    accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as "Active" | "Inactive";
-      return <UserStatusBadge status={status} />;
+      const isActive = row.getValue("isActive") as boolean;
+      return <UserStatusBadge status={isActive ? "Active" : "Inactive"} />;
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Created",
+    cell: ({ row }) => {
+      const createdAt = row.getValue("createdAt") as string;
+      return (
+        <div className="px-2 text-sm text-muted-foreground">
+          {new Date(createdAt).toLocaleDateString()}
+        </div>
+      );
     },
   },
 ];
 
-export default function GroupsManagementPage() {  
+export default function GroupsManagementPage() {
+  const navigation = useNavigation();
+  const { groups, organizationId, apiKey } = useLoaderData<typeof loader>();
+  const revalidator = useRevalidator();
+
+  // Debug logging
+  console.log("🎯 Component received data:");
+  console.log("  - groups:", groups);
+  console.log("  - groups type:", typeof groups);
+  console.log(
+    "  - groups length:",
+    Array.isArray(groups) ? groups.length : "Not an array"
+  );
+  console.log("  - organizationId:", organizationId);
+  console.log("  - apiKey:", apiKey ? "✅ Present" : "❌ Missing");
+
+  if (navigation.state === "loading") {
+    return <AdminDashboardSkeleton />;
+  }
+
   // for side sheet
   const [open, setOpen] = React.useState(false);
   const [selectedGroup, setSelectedGroup] = React.useState<Group | null>(null);
@@ -130,28 +146,31 @@ export default function GroupsManagementPage() {
 
   return (
     <div className="space-y-4">
-      {/* <TableSkeleton/> */}
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="">
-          <h1 className="text-3xl font-bold">Approval Groups Management </h1>
+          <h1 className="text-3xl font-bold">Groups Management</h1>
           <p className="text-sm text-muted-foreground">
-            Manage organization Groups, and Approval managers.
+            Manage organization groups, approval managers, and members.
           </p>
         </div>
         <CreateGroupCard />
       </div>
-      {/* Table for grp detail */}
+
+      {/* Table for group details */}
       <DataTable
         columns={groupColumns}
-        data={mockGroups}
-        searchKey="groupName"
+        data={groups}
+        searchKey="name"
         onRowClick={handleRowClick}
       />
+
       <GroupDetailsSheet
         group={selectedGroup}
         open={open}
         onOpenChange={setOpen}
+        organizationId={organizationId}
+        apiKey={apiKey}
       />
     </div>
   );

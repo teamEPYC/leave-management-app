@@ -354,7 +354,7 @@ organizationEndpoint.openapi(
 organizationEndpoint.get("/:orgId/users", async (c) => {
     try {
         const db = connectDb({ env: c.env });
-        const apiKey = (c.req.header("x-api-key") || "").trim();
+        const apiKey = (c.req.header("x-api-key") || "");
         const orgId = (c.req.param("orgId") || "").trim();
 
         if (!apiKey) {

@@ -23,6 +23,7 @@ import {
   createUser,
   getOrganizationRoles,
   type OrganizationRole,
+  type CreateUserRequest,
 } from "~/lib/api/users/users";
 
 interface AddUserDialogProps {
@@ -43,11 +44,13 @@ export function AddUserDialog({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [roles, setRoles] = React.useState<OrganizationRole[]>([]);
   const [isLoadingRoles, setIsLoadingRoles] = React.useState(false);
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = React.useState<
+    Omit<CreateUserRequest, "organizationId">
+  >({
     email: "",
     name: "",
     roleId: "",
-    employeeType: "FULL_TIME" as "FULL_TIME" | "PART_TIME",
+    employeeType: "FULL_TIME",
   });
 
   // Fetch roles when dialog opens

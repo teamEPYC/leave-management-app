@@ -7,6 +7,7 @@ import { handleApiErrors } from "../utils/error";
 import { deactivateOrganization, updateOrganization } from "../features/organization/update";
 import { getOrganizationList } from "../features/organization/get";
 import { inviteUserToOrg } from "../features/organization/invite-user";
+import { getOrganizationUsers } from "../features/user";
 
 import { joinOrganization } from "../features/organization/join";
 
@@ -347,3 +348,29 @@ organizationEndpoint.openapi(
         }
     }
 );
+
+
+// GET /api/v1/organization/:orgId/users → list all users in organization
+organizationEndpoint.get("/:orgId/users", async (c) => {
+    try {
+        const db = connectDb({ env: c.env });
+        const apiKey = (c.req.header("x-api-key") || "");
+        const orgId = (c.req.param("orgId") || "").trim();
+
+        if (!apiKey) {
+            return c.json({ ok: false, error: "Missing API key" } as const, 401);
+        }
+
+        const users = await getOrganizationUsers({
+            db,
+            organizationId: orgId,
+        });
+
+        return c.json(
+            { ok: true, data: users } as const,
+            200
+        );
+    } catch (err) {
+        return c.json({ ok: false, error: "Failed to fetch organization users" } as const, 500);
+    }
+});

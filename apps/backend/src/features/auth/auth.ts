@@ -107,3 +107,15 @@ export async function verifyEmailAndPassword({
     data: { apiKey },
   } as const;
 }
+
+export async function requireAuth({
+  env,
+  apiKey,
+  db,
+}: WithDbAndEnv<{ apiKey: string }>) {
+  const userRes = await getUserFromApiKey({ db, env, apiKey });
+  if (!userRes.ok) {
+    return userRes;
+  }
+  return { ok: true, user: userRes.user } as const;
+}

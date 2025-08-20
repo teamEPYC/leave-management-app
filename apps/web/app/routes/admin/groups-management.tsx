@@ -13,6 +13,7 @@ import { requireRole } from "~/lib/auth/route-guards";
 import { AdminDashboardSkeleton } from "~/components/shared/dashboard-skeleton";
 import { getSession } from "~/lib/session.server";
 import { getGroups } from "~/lib/api/groups/groups";
+import { getOrganizationUsers } from "~/lib/api/organization/users";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Check if user has access to admin routes - optimized for performance
@@ -30,33 +31,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const currentOrgId = session.get("currentOrgId") as string | undefined;
 
   if (!apiKey || !currentOrgId) {
-    return { groups: [], organizationId: "", apiKey: "" };
+    return { groups: [], users: [], organizationId: "", apiKey: "" };
   }
 
   try {
-    console.log(
-      "🔍 Fetching groups with apiKey:",
-      apiKey ? "✅ Present" : "❌ Missing"
-    );
-    console.log("🔍 Organization ID:", currentOrgId);
-
-    // Fetch real groups from backend
-    const groupsResponse = await getGroups({ apiKey });
-    console.log("📡 Backend response:", groupsResponse);
-    console.log(
-      "📊 Groups count:",
-      Array.isArray(groupsResponse) ? groupsResponse.length : "Not an array"
-    );
-    console.log("📋 Groups data:", groupsResponse);
+    // Fetch both groups and users in parallel
+    const [groupsResponse, usersResponse] = await Promise.all([
+      getGroups({ apiKey }),
+      getOrganizationUsers(currentOrgId, apiKey),
+    ]);
 
     return {
       groups: groupsResponse,
+      users: usersResponse.data,
       organizationId: currentOrgId,
       apiKey,
     };
   } catch (error) {
-    console.error("❌ Failed to fetch groups:", error);
-    return { groups: [], organizationId: currentOrgId, apiKey };
+    console.error("Failed to fetch data:", error);
+    return { groups: [], users: [], organizationId: currentOrgId, apiKey };
   }
 }
 
@@ -117,16 +110,22 @@ export const groupColumns: ColumnDef<Group>[] = [
 
 export default function GroupsManagementPage() {
   const navigation = useNavigation();
-  const { groups, organizationId, apiKey } = useLoaderData<typeof loader>();
+  const { groups, users, organizationId, apiKey } =
+    useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
 
   // Debug logging
   console.log("🎯 Component received data:");
   console.log("  - groups:", groups);
+  console.log("  - users:", users);
   console.log("  - groups type:", typeof groups);
   console.log(
     "  - groups length:",
     Array.isArray(groups) ? groups.length : "Not an array"
+  );
+  console.log(
+    "  - users length:",
+    Array.isArray(users) ? users.length : "Not an array"
   );
   console.log("  - organizationId:", organizationId);
   console.log("  - apiKey:", apiKey ? "✅ Present" : "❌ Missing");
@@ -144,6 +143,11 @@ export default function GroupsManagementPage() {
     setOpen(true);
   };
 
+  const handleGroupCreated = () => {
+    // Refresh the groups list after creating a new group
+    revalidator.revalidate();
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -154,7 +158,12 @@ export default function GroupsManagementPage() {
             Manage organization groups, approval managers, and members.
           </p>
         </div>
-        <CreateGroupCard />
+        <CreateGroupCard
+          organizationId={organizationId}
+          apiKey={apiKey}
+          onGroupCreated={handleGroupCreated}
+          users={users}
+        />
       </div>
 
       {/* Table for group details */}

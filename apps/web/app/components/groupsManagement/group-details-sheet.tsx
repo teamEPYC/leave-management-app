@@ -6,12 +6,14 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "~/components/ui/sheet";
 import type { UserStatusType } from "../shared/user-status-badge";
 import { UserStatusBadge } from "../shared/user-status-badge";
 import React from "react";
 import GroupMembersCard from "./group-members-card";
+import { Badge } from "~/components/ui/badge";
+import { Calendar, Users, Shield, Clock } from "lucide-react";
+import { getGroupDetails } from "~/lib/api/groups/groups";
 
 interface Props {
   group: Group | null;
@@ -19,6 +21,15 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   organizationId: string;
   apiKey: string;
+}
+
+interface GroupMember {
+  userId: string;
+  name: string;
+  email: string;
+  image: string | null;
+  isApprovalManager: boolean;
+  addedAt: string;
 }
 
 export function GroupDetailsSheet({
@@ -33,48 +44,160 @@ export function GroupDetailsSheet({
     group?.isActive ? "Active" : "Inactive"
   );
 
+  // State for group details
+  const [groupDetails, setGroupDetails] = React.useState<{
+    group: Group;
+    members: GroupMember[];
+  } | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
   // Update status when group changes
   React.useEffect(() => {
     setStatus(group?.isActive ? "Active" : "Inactive");
   }, [group?.isActive]);
 
+  // Fetch group details when sheet opens
+  React.useEffect(() => {
+    if (open && group && apiKey) {
+      fetchGroupDetails();
+    }
+  }, [open, group, apiKey]);
+
+  const fetchGroupDetails = async () => {
+    if (!group || !apiKey) return;
+
+    setIsLoadingDetails(true);
+    setError(null);
+
+    try {
+      const response = await getGroupDetails(group.id, apiKey);
+
+      if (response.ok && response.data) {
+        setGroupDetails(response.data);
+      } else {
+        setError(response.error || "Failed to fetch group details");
+      }
+    } catch (err) {
+      console.error("Error fetching group details:", err);
+      setError("Failed to fetch group details");
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  if (!group) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="w-[1280px] max-w-[100vw] rounded-0 md:rounded-tl-2xl p-0 pb-0 overflow-auto md:overflow-hidden md:max-w-[60vw] gap-0">
+          <SheetHeader className="border-b flex flex-col p-6">
+            <SheetTitle className="flex-row text-2xl text-black font-bold">
+              Group Details
+            </SheetTitle>
+            <SheetDescription>No group selected</SheetDescription>
+          </SheetHeader>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Select a group to view details</p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[1280px] max-w-[100vw] rounded-0 md:rounded-tl-2xl p-0 pb-0 overflow-auto md:overflow-hidden md:max-w-[60vw] gap-0">
-        <SheetHeader className="border-b flex flex-col">
+        <SheetHeader className="border-b flex flex-col p-6">
           <SheetTitle className="flex-row text-2xl text-black font-bold">
             Group Details
           </SheetTitle>
           <SheetDescription>
-            Manage {group?.name} Group from here
+            Manage {group.name} Group from here
           </SheetDescription>
         </SheetHeader>
-        <div className="flex flex-col p-4 gap-4 overflow-auto">
-          {/* Name with favicon of group along with description */}
-          <div className="flex flex-row gap-4 text-xl font-bold items-center ">
-            <Avatar className="size-15">
-              {/* replace with group.icon when available */}
+
+        <div className="flex flex-col p-6 gap-6 overflow-auto">
+          {/* Header Section - Name, Icon, Description */}
+          <div className="flex flex-row gap-4 items-start">
+            <Avatar className="size-16">
               <AvatarImage
-                src={group?.icon || "https://github.com/shadcn.png"}
+                src={group.icon || "https://github.com/shadcn.png"}
+                alt={`${group.name} icon`}
               />
-              <AvatarFallback>
-                {group?.name?.substring(0, 2).toUpperCase() || "GP"}
+              <AvatarFallback className="text-lg font-semibold">
+                {group.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className="">
-              <div>{group?.name} Group</div>
-              <div className="text-base font-light text-muted-foreground">
-                {group?.description || "No description"}
+            <div className="flex-1">
+              <div className="text-2xl font-bold mb-2">{group.name}</div>
+              <div className="text-base text-muted-foreground mb-3">
+                {group.description || "No description provided"}
+              </div>
+              <div className="flex items-center gap-4">
+                <UserStatusBadge
+                  status={status}
+                  editable
+                  onStatusChange={(newStatus) => setStatus(newStatus)}
+                />
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  Group
+                </Badge>
               </div>
             </div>
           </div>
-          <UserStatusBadge
-            status={status}
-            editable
-            onStatusChange={(newStatus) => setStatus(newStatus)}
+
+          {/* Group Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-muted/50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">
+                  Created
+                </span>
+              </div>
+              <div className="text-lg font-semibold">
+                {new Date(group.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">
+                  Last Updated
+                </span>
+              </div>
+              <div className="text-lg font-semibold">
+                {new Date(group.updatedAt).toLocaleDateString()}
+              </div>
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">
+                  Status
+                </span>
+              </div>
+              <div className="text-lg font-semibold">
+                {group.isActive ? "Active" : "Inactive"}
+              </div>
+            </div>
+          </div>
+
+          {/* Group Members Section */}
+          <GroupMembersCard
+            group={group}
+            organizationId={organizationId}
+            apiKey={apiKey}
+            groupDetails={groupDetails}
+            isLoading={isLoadingDetails}
+            error={error}
           />
-          {/* Group Detail card */}
-          <GroupMembersCard group={group} />
         </div>
       </SheetContent>
     </Sheet>

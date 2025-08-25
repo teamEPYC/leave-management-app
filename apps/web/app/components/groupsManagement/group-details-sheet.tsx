@@ -59,6 +59,14 @@ export function GroupDetailsSheet({
 
   // Fetch group details when sheet opens
   React.useEffect(() => {
+    console.log(
+      "🔄 useEffect triggered - open:",
+      open,
+      "group:",
+      !!group,
+      "apiKey:",
+      !!apiKey
+    );
     if (open && group && apiKey) {
       fetchGroupDetails();
     }
@@ -67,19 +75,23 @@ export function GroupDetailsSheet({
   const fetchGroupDetails = async () => {
     if (!group || !apiKey) return;
 
+    console.log("🔍 fetchGroupDetails called for group:", group.id);
     setIsLoadingDetails(true);
     setError(null);
 
     try {
       const response = await getGroupDetails(group.id, apiKey);
+      console.log("📡 getGroupDetails response:", response);
 
       if (response.ok && response.data) {
+        console.log("✅ Setting groupDetails:", response.data);
         setGroupDetails(response.data);
       } else {
+        console.error("❌ API error:", response.error);
         setError(response.error || "Failed to fetch group details");
       }
     } catch (err) {
-      console.error("Error fetching group details:", err);
+      console.error("💥 Exception:", err);
       setError("Failed to fetch group details");
     } finally {
       setIsLoadingDetails(false);

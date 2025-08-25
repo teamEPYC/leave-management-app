@@ -1,5 +1,9 @@
 # 🌐 API Reference
 
+## ⚠️ **React Router v7 Integration**
+
+This API reference is designed to work with **React Router v7 loaders and actions**. Avoid using `useEffect` for data fetching - use loaders instead.
+
 ## 📋 **Overview**
 
 This document provides a **concise reference** for the backend API structure, authentication, and common patterns. For detailed endpoint documentation, see individual module documentation.
@@ -84,13 +88,23 @@ if (result.ok && result.data) {
 
 ## 🔍 **Common Patterns**
 
-### **List Resources**
+### **React Router v7 Integration**
 
 ```typescript
-// GET /api/v1/{resource}/list
-// Returns: { ok: true, data: Resource[] }
-const resources = await listResources(apiKey);
+// ✅ RECOMMENDED: Use loaders for data fetching
+export async function loader({ request }: LoaderFunctionArgs) {
+  const apiKey = getApiKeyFromRequest(request);
+  const result = await listResources(apiKey);
+
+  if (!result.ok) throw new Error(result.error);
+  return { resources: result.data, apiKey };
+}
+
+// ❌ AVOID: useEffect for initial data
+// useEffect(() => { fetchData(); }, []); // Don't do this
 ```
+
+### **List Resources**
 
 ### **Get Single Resource**
 

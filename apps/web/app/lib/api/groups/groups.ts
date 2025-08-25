@@ -1,4 +1,5 @@
 import { client } from "../client";
+import type { Group } from "~/routes/admin/groups-management";
 
 // get groups
 export async function getGroups({ apiKey }: { apiKey: string }) {
@@ -134,18 +135,42 @@ export async function getGroupDetails(
   error?: string;
 }> {
   try {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/group/${groupId}`,
-      {
-        method: "GET",
-        headers: {
-          "x-api-key": apiKey,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL;
+    console.log("🔧 Environment check:", {
+      VITE_BACKEND_BASE_URL: backendUrl,
+      "backendUrl.length": backendUrl?.length,
+      "backendUrl.endsWith('/')": backendUrl?.endsWith("/"),
+      fullUrl: `${backendUrl}/api/v1/group/${groupId}`,
+    });
 
-    const data = await response.json();
+    // Remove trailing slash if present to avoid double slashes
+    const cleanBackendUrl = backendUrl?.endsWith("/")
+      ? backendUrl.slice(0, -1)
+      : backendUrl;
+
+    const response = await fetch(`${cleanBackendUrl}/api/v1/group/${groupId}`, {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = (await response.json()) as {
+      ok: boolean;
+      data?: {
+        group: Group;
+        members: Array<{
+          userId: string;
+          name: string;
+          email: string;
+          image: string | null;
+          isApprovalManager: boolean;
+          addedAt: string;
+        }>;
+      };
+      error?: string;
+    };
 
     if (!response.ok) {
       return {

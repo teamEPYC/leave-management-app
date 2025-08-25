@@ -1,16 +1,21 @@
 # 🚀 API Integration Patterns Guide
 
+## ⚠️ **Important: React Router v7 Required**
+
+This guide is designed for **React Router v7**. The patterns emphasize using **loaders and actions** instead of `useEffect` for data fetching and mutations.
+
 ## 📋 **Overview**
 
 This guide establishes **standard patterns** for integrating backend APIs with frontend components across all modules. Following these patterns ensures consistency, maintainability, and reduces development time.
 
 ## 🎯 **Core Principles**
 
-1. **Consistent Error Handling** - All API calls follow the same error pattern
-2. **Standardized Loading States** - Uniform loading indicators across components
-3. **Type-Safe API Responses** - Proper TypeScript interfaces for all responses
-4. **Centralized API Client** - Single source of truth for API calls
-5. **Reusable Components** - Common UI patterns for similar functionality
+1. **React Router v7 First** - Use loaders and actions instead of useEffect for data fetching
+2. **Consistent Error Handling** - All API calls follow the same error pattern
+3. **Standardized Loading States** - Uniform loading indicators across components
+4. **Type-Safe API Responses** - Proper TypeScript interfaces for all responses
+5. **Centralized API Client** - Single source of truth for API calls
+6. **Reusable Components** - Common UI patterns for similar functionality
 
 ---
 
@@ -273,7 +278,9 @@ const handleApiCall = async () => {
 
 ## 🔄 **5. Data Fetching Pattern**
 
-### **useEffect Pattern for Data Loading**
+### **⚠️ DEPRECATED: useEffect Pattern (React Router v6 and earlier)**
+
+**Note**: This pattern is deprecated for new development. Use React Router v7 loaders and actions instead.
 
 ```typescript
 // Standard data fetching hook
@@ -321,7 +328,7 @@ export function useDataFetching<T>(
 
 ### **Usage Example**
 
-```typescript
+````typescript
 function MyComponent({ apiKey }: { apiKey: string }) {
   const { data, isLoading, error, refetch } = useDataFetching(
     () => fetchMyData(apiKey),
@@ -334,7 +341,157 @@ function MyComponent({ apiKey }: { apiKey: string }) {
 
   return <DataDisplay data={data} onRefresh={refetch} />;
 }
+
+---
+
+### **✅ RECOMMENDED: React Router v7 Loaders and Actions Pattern**
+
+React Router v7 provides a more efficient and declarative way to handle data fetching and mutations.
+
+#### **Loader Pattern for Data Fetching**
+
+```typescript
+// In your route file (e.g., groups-management.tsx)
+export async function loader({ request }: LoaderFunctionArgs) {
+  const apiKey = getApiKeyFromRequest(request);
+
+  try {
+    const groupsResponse = await getGroups({ apiKey });
+    const usersResponse = await listUsers(apiKey);
+
+    if (!groupsResponse.ok || !usersResponse.ok) {
+      throw new Error('Failed to fetch initial data');
+    }
+
+    return {
+      groups: groupsResponse.data,
+      users: usersResponse.data,
+      apiKey,
+    };
+  } catch (error) {
+    throw new Error('Failed to load groups management data');
+  }
+}
+````
+
+#### **Action Pattern for Data Mutations**
+
+```typescript
+// In your route file
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const apiKey = getApiKeyFromRequest(request);
+
+  try {
+    const result = await createGroup({
+      organizationId: formData.get("organizationId") as string,
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+      apiKey,
+    });
+
+    if (result.ok) {
+      return redirect("/admin/groups-management");
+    } else {
+      return json({ error: result.error }, { status: 400 });
+    }
+  } catch (error) {
+    return json({ error: "Failed to create group" }, { status: 500 });
+  }
+}
 ```
+
+#### **Component Usage with Loader Data**
+
+```typescript
+// In your component
+import { useLoaderData } from "react-router-dom";
+
+function GroupsManagementPage() {
+  const { groups, users, apiKey } = useLoaderData<typeof loader>();
+
+  // No useEffect needed! Data is already available
+  // No loading states to manage manually
+
+  return (
+    <div>
+      <GroupsTable groups={groups} />
+      <UsersList users={users} />
+    </div>
+  );
+}
+```
+
+#### **Benefits of Loaders and Actions**
+
+1. **No useEffect needed** - Data is fetched before component renders
+2. **Automatic loading states** - React Router handles loading UI
+3. **Better error boundaries** - Centralized error handling
+4. **Improved performance** - Data fetching happens in parallel
+5. **Better UX** - No loading spinners after initial load
+6. **Type safety** - Loader data is fully typed
+
+---
+
+### **🔄 Migration Guide: From useEffect to Loaders**
+
+#### **Before (useEffect Pattern)**
+
+```typescript
+function GroupDetailsSheet({ group, apiKey }: Props) {
+  const [groupDetails, setGroupDetails] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (group && apiKey) {
+      fetchGroupDetails();
+    }
+  }, [group, apiKey]);
+
+  const fetchGroupDetails = async () => {
+    setIsLoading(true);
+    const result = await getGroupDetails(group.id, apiKey);
+    setGroupDetails(result.data);
+    setIsLoading(false);
+  };
+
+  // Component logic...
+}
+```
+
+#### **After (Loader Pattern)**
+
+```typescript
+// In route file
+export async function loader({ params, request }: LoaderFunctionArgs) {
+  const apiKey = getApiKeyFromRequest(request);
+  const groupId = params.groupId;
+
+  const result = await getGroupDetails(groupId, apiKey);
+  if (!result.ok) throw new Error(result.error);
+
+  return { groupDetails: result.data, apiKey };
+}
+
+// In component
+function GroupDetailsSheet() {
+  const { groupDetails, apiKey } = useLoaderData<typeof loader>();
+
+  // No useEffect, no loading states, data is ready!
+  return <GroupMemberManager groupDetails={groupDetails} />;
+}
+```
+
+#### **When to Use Each Pattern**
+
+| Pattern                     | Use Case                    | Example                           |
+| --------------------------- | --------------------------- | --------------------------------- |
+| **Loaders**                 | Initial data fetching       | Page load, route navigation       |
+| **Actions**                 | Form submissions, mutations | Create, update, delete operations |
+| **useEffect**               | Side effects, subscriptions | Event listeners, timers, cleanup  |
+| **useState + manual fetch** | User-triggered actions      | Search, filters, pagination       |
+
+````
 
 ---
 
@@ -382,7 +539,7 @@ function useFormState<T>(initialData: T) {
     setSubmitting,
   };
 }
-```
+````
 
 ### **Form Submission Pattern**
 

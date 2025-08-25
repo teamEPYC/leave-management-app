@@ -23,15 +23,21 @@ import {
 import { DataTable } from "../ui/data-table";
 import Dashboard from "~/routes/dashboard";
 import { EditableProgressIndicator } from "./EditableProgressIndicator";
-import { UserAccessEditor } from "./UserAccessEditor";
+import { UserAccessEditor } from "./user-access-editor";
+import { getOrganizationRoles } from "~/lib/api/users/users";
+import { toast } from "sonner";
 
 interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  role: string;
-  groups: string[];
-  status: "Active" | "Inactive";
+  image: string | null;
+  phone: string | null;
+  employeeType: "FULL_TIME" | "PART_TIME";
+  roleId: string;
+  isOwner: boolean;
+  roleName: string;
+  joinedAt: string;
 }
 
 // mock for prog indicator
@@ -85,6 +91,8 @@ interface Props {
   user: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  organizationId: string;
+  apiKey: string;
 }
 
 export const columns: ColumnDef<Leaves>[] = [
@@ -114,7 +122,43 @@ export const columns: ColumnDef<Leaves>[] = [
   },
 ];
 
-export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
+export function UserDetailsSheet({
+  user,
+  open,
+  onOpenChange,
+  organizationId,
+  apiKey,
+}: Props) {
+  const [roles, setRoles] = React.useState<Array<{ id: string; name: string }>>(
+    []
+  );
+  const [isLoadingRoles, setIsLoadingRoles] = React.useState(false);
+
+  // Fetch roles when sheet opens
+  React.useEffect(() => {
+    if (open && organizationId && apiKey) {
+      fetchRoles();
+    }
+  }, [open, organizationId, apiKey]);
+
+  const fetchRoles = async () => {
+    setIsLoadingRoles(true);
+    try {
+      const response = await getOrganizationRoles(organizationId, apiKey);
+      if (response.ok) {
+        setRoles(response.data);
+      } else {
+        console.error("Failed to fetch roles:", response);
+        toast.error("Failed to fetch roles");
+      }
+    } catch (error) {
+      console.error("Failed to fetch roles:", error);
+      toast.error("Failed to fetch roles");
+    } finally {
+      setIsLoadingRoles(false);
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[1280px] max-w-[100vw] rounded-0 md:rounded-tl-2xl p-0 pb-0 overflow-auto md:overflow-hidden md:max-w-[60vw] gap-0">
@@ -128,9 +172,10 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
             {/* Name with favicon of user */}
             <div className="flex flex-row gap-4 text-xl font-bold items-center ">
               <Avatar className="size-15">
-                {/* replave with user.favicon */}
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
+                <AvatarImage src={user.image || undefined} />
+                <AvatarFallback>
+                  {user.name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className="">
                 <div>{user.name}</div>
@@ -139,12 +184,49 @@ export function UserDetailsSheet({ user, open, onOpenChange }: Props) {
                 </div>
               </div>
             </div>
+
+            {/* Additional User Info */}
+            <div className="flex flex-row gap-6 text-sm">
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-muted-foreground">
+                  Employee Type:
+                </span>
+                <Badge
+                  variant="outline"
+                  className={`rounded ${
+                    user.employeeType === "FULL_TIME"
+                      ? "bg-teal-500 text-white"
+                      : "bg-yellow-400 text-black"
+                  }`}
+                >
+                  {user.employeeType === "FULL_TIME"
+                    ? "Full Time"
+                    : "Part Time"}
+                </Badge>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-muted-foreground">
+                  Joined:
+                </span>
+                <span>{new Date(user.joinedAt).toLocaleDateString()}</span>
+              </div>
+              {user.phone && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-muted-foreground">
+                    Phone:
+                  </span>
+                  <span>{user.phone}</span>
+                </div>
+              )}
+            </div>
             {/* Groups and Role */}
             <div className=" p-4 ">
               <UserAccessEditor
-                defaultRole={user.role}
-                defaultStatus={user.status}
-                defaultGroups={user.groups}
+                defaultRole={user.roleName}
+                defaultStatus="Active"
+                defaultGroups={[]}
+                availableRoles={roles}
+                readOnly={false}
                 onChange={(updated) => {
                   console.log("Updated Access:", updated);
                 }}

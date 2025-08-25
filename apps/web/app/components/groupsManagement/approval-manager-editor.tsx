@@ -55,14 +55,15 @@ export default function ApprovalManagerEditor({
     setDialogOpen(false);
   };
 
-  React.useEffect(() => {
-    if (dialogOpen) {
-      setEditableManagers(managers); // preload current state
+  const handleOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (open) {
+      setEditableManagers(managers); // preload current state when dialog opens
     }
-  }, [dialogOpen, managers]);
+  };
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <div
           className="flex flex-wrap gap-2 border-0 p-3 pl-1 rounded cursor-pointer hover:bg-muted transition-colors"

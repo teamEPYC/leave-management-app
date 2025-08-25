@@ -47,7 +47,7 @@ export function UserStatusBadge({
       >
         <SelectTrigger
           className={cn(
-            "gap-2 rounded-full border-0 shadow-sm ring-2 font-semibold ring-background focus:ring-2 focus:ring-ring h-auto py- px- hover:cursor-pointer",
+            "gap-2 rounded-full border-0 shadow-sm ring-2 font-semibold ring-background focus:ring-2 focus:ring-ring h-auto py-2 px-3 hover:cursor-pointer",
             style.color,
             className
           )}

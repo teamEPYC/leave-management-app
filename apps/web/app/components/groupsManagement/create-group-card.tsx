@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import {
@@ -12,8 +10,21 @@ import {
 import { Button } from "~/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { GroupForm } from "./group-form";
+import type { OrganizationUser } from "~/lib/api/organization/users";
 
-export function CreateGroupCard() {
+interface Props {
+  organizationId: string;
+  apiKey: string;
+  onGroupCreated?: () => void;
+  users: OrganizationUser[];
+}
+
+export function CreateGroupCard({
+  organizationId,
+  apiKey,
+  onGroupCreated,
+  users,
+}: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -25,8 +36,16 @@ export function CreateGroupCard() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="">
-        <GroupForm onSuccess={() => setOpen(false)} />
+      <DialogContent className="max-w-2xl w-[90vw] max-h-[90vh] overflow-y-auto">
+        <GroupForm
+          onSuccess={() => {
+            setOpen(false);
+            onGroupCreated?.();
+          }}
+          organizationId={organizationId}
+          apiKey={apiKey}
+          users={users}
+        />
       </DialogContent>
     </Dialog>
   );

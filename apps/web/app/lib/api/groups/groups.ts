@@ -1,4 +1,5 @@
 import { client } from "../client";
+import type { Group } from "~/routes/admin/groups-management";
 
 // get groups
 export async function getGroups({ apiKey }: { apiKey: string }) {
@@ -92,7 +93,7 @@ export async function updateGroup({
   return res.data.data;
 }
 
-// deactivate group 
+// deactivate group
 export async function deleteGroup({
   apiKey,
   groupId,
@@ -113,4 +114,80 @@ export async function deleteGroup({
 
   if (res.error) throw new Error(JSON.stringify(res.error));
   return res.data.data;
+}
+
+export async function getGroupDetails(
+  groupId: string,
+  apiKey: string
+): Promise<{
+  ok: boolean;
+  data?: {
+    group: Group;
+    members: Array<{
+      userId: string;
+      name: string;
+      email: string;
+      image: string | null;
+      isApprovalManager: boolean;
+      addedAt: string;
+    }>;
+  };
+  error?: string;
+}> {
+  try {
+    const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL;
+    console.log("🔧 Environment check:", {
+      VITE_BACKEND_BASE_URL: backendUrl,
+      "backendUrl.length": backendUrl?.length,
+      "backendUrl.endsWith('/')": backendUrl?.endsWith("/"),
+      fullUrl: `${backendUrl}/api/v1/group/${groupId}`,
+    });
+
+    // Remove trailing slash if present to avoid double slashes
+    const cleanBackendUrl = backendUrl?.endsWith("/")
+      ? backendUrl.slice(0, -1)
+      : backendUrl;
+
+    const response = await fetch(`${cleanBackendUrl}/api/v1/group/${groupId}`, {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = (await response.json()) as {
+      ok: boolean;
+      data?: {
+        group: Group;
+        members: Array<{
+          userId: string;
+          name: string;
+          email: string;
+          image: string | null;
+          isApprovalManager: boolean;
+          addedAt: string;
+        }>;
+      };
+      error?: string;
+    };
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: data.error || "Failed to fetch group details",
+      };
+    }
+
+    return {
+      ok: true,
+      data: data.data,
+    };
+  } catch (error) {
+    console.error("Error fetching group details:", error);
+    return {
+      ok: false,
+      error: "Failed to fetch group details",
+    };
+  }
 }

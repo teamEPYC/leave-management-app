@@ -1,7 +1,12 @@
 import { Group, Plus } from "lucide-react";
 import React from "react";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { useNavigation, useLoaderData, useRevalidator } from "react-router-dom";
+import {
+  useNavigation,
+  useLoaderData,
+  useRevalidator,
+  useParams,
+} from "react-router-dom";
 import { CreateGroupCard } from "~/components/groupsManagement/create-group-card";
 import { Button } from "~/components/ui/button";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -14,6 +19,7 @@ import { AdminDashboardSkeleton } from "~/components/shared/dashboard-skeleton";
 import { getSession } from "~/lib/session.server";
 import { getGroups } from "~/lib/api/groups/groups";
 import { getOrganizationUsers } from "~/lib/api/organization/users";
+import { getGroupDetails } from "~/lib/api/groups/groups";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Check if user has access to admin routes - optimized for performance
@@ -114,39 +120,81 @@ export default function GroupsManagementPage() {
     useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
 
-  // Debug logging
-  console.log("🎯 Component received data:");
-  console.log("  - groups:", groups);
-  console.log("  - users:", users);
-  console.log("  - groups type:", typeof groups);
-  console.log(
-    "  - groups length:",
-    Array.isArray(groups) ? groups.length : "Not an array"
-  );
-  console.log(
-    "  - users length:",
-    Array.isArray(users) ? users.length : "Not an array"
-  );
-  console.log("  - organizationId:", organizationId);
-  console.log("  - apiKey:", apiKey ? "✅ Present" : "❌ Missing");
-
-  if (navigation.state === "loading") {
-    return <AdminDashboardSkeleton />;
-  }
-
   // for side sheet
   const [open, setOpen] = React.useState(false);
   const [selectedGroup, setSelectedGroup] = React.useState<Group | null>(null);
+  const [groupDetails, setGroupDetails] = React.useState<{
+    group: Group;
+    members: Array<{
+      userId: string;
+      name: string;
+      email: string;
+      image: string | null;
+      isApprovalManager: boolean;
+      addedAt: string;
+    }>;
+  } | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const handleRowClick = (group: Group) => {
+  const handleRowClick = async (group: Group) => {
     setSelectedGroup(group);
     setOpen(true);
+
+    // Fetch group details when sheet opens
+    if (group && apiKey) {
+      setIsLoadingDetails(true);
+      setError(null);
+
+      try {
+        const response = await getGroupDetails(group.id, apiKey);
+        if (response.ok && response.data) {
+          setGroupDetails(response.data);
+        } else {
+          setError(response.error || "Failed to fetch group details");
+          setGroupDetails(null);
+        }
+      } catch (err) {
+        console.error("Error fetching group details:", err);
+        setError("Failed to fetch group details");
+        setGroupDetails(null);
+      } finally {
+        setIsLoadingDetails(false);
+      }
+    }
   };
 
   const handleGroupCreated = () => {
     // Refresh the groups list after creating a new group
     revalidator.revalidate();
   };
+
+  if (navigation.state === "loading") {
+    return <AdminDashboardSkeleton />;
+  }
+
+  // Handle case where no data is available
+  if (!groups || !users) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start justify-between">
+          <div className="">
+            <h1 className="text-3xl font-bold">Groups Management</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage organization groups, approval managers, and members.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center text-muted-foreground">
+            <p>
+              No data available. Please check your connection and try again.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -180,6 +228,9 @@ export default function GroupsManagementPage() {
         onOpenChange={setOpen}
         organizationId={organizationId}
         apiKey={apiKey}
+        groupDetails={groupDetails}
+        isLoadingDetails={isLoadingDetails}
+        error={error}
       />
     </div>
   );

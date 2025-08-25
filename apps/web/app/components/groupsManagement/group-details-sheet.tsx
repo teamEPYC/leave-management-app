@@ -13,7 +13,6 @@ import React from "react";
 import GroupMembersCard from "./group-members-card";
 import { Badge } from "~/components/ui/badge";
 import { Calendar, Users, Shield, Clock } from "lucide-react";
-import { getGroupDetails } from "~/lib/api/groups/groups";
 
 interface Props {
   group: Group | null;
@@ -21,6 +20,12 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   organizationId: string;
   apiKey: string;
+  groupDetails?: {
+    group: Group;
+    members: GroupMember[];
+  } | null;
+  isLoadingDetails?: boolean;
+  error?: string | null;
 }
 
 interface GroupMember {
@@ -38,65 +43,19 @@ export function GroupDetailsSheet({
   onOpenChange,
   organizationId,
   apiKey,
+  groupDetails,
+  isLoadingDetails = false,
+  error = null,
 }: Props) {
   // for status badge - use the group's actual status
   const [status, setStatus] = React.useState<UserStatusType>(
     group?.isActive ? "Active" : "Inactive"
   );
 
-  // State for group details
-  const [groupDetails, setGroupDetails] = React.useState<{
-    group: Group;
-    members: GroupMember[];
-  } | null>(null);
-  const [isLoadingDetails, setIsLoadingDetails] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-
   // Update status when group changes
   React.useEffect(() => {
     setStatus(group?.isActive ? "Active" : "Inactive");
   }, [group?.isActive]);
-
-  // Fetch group details when sheet opens
-  React.useEffect(() => {
-    console.log(
-      "🔄 useEffect triggered - open:",
-      open,
-      "group:",
-      !!group,
-      "apiKey:",
-      !!apiKey
-    );
-    if (open && group && apiKey) {
-      fetchGroupDetails();
-    }
-  }, [open, group, apiKey]);
-
-  const fetchGroupDetails = async () => {
-    if (!group || !apiKey) return;
-
-    console.log("🔍 fetchGroupDetails called for group:", group.id);
-    setIsLoadingDetails(true);
-    setError(null);
-
-    try {
-      const response = await getGroupDetails(group.id, apiKey);
-      console.log("📡 getGroupDetails response:", response);
-
-      if (response.ok && response.data) {
-        console.log("✅ Setting groupDetails:", response.data);
-        setGroupDetails(response.data);
-      } else {
-        console.error("❌ API error:", response.error);
-        setError(response.error || "Failed to fetch group details");
-      }
-    } catch (err) {
-      console.error("💥 Exception:", err);
-      setError("Failed to fetch group details");
-    } finally {
-      setIsLoadingDetails(false);
-    }
-  };
 
   if (!group) {
     return (
@@ -112,6 +71,54 @@ export function GroupDetailsSheet({
             <div className="text-center text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Select a group to view details</p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Show loading state while fetching group details
+  if (isLoadingDetails) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="w-[1280px] max-w-[100vw] rounded-0 md:rounded-tl-2xl p-0 pb-0 overflow-auto md:overflow-hidden md:max-w-[60vw] gap-0">
+          <SheetHeader className="border-b flex flex-col p-6">
+            <SheetTitle className="flex-row text-2xl text-black font-bold">
+              Group Details
+            </SheetTitle>
+            <SheetDescription>
+              Loading {group.name} Group details...
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center text-muted-foreground">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p>Loading group details...</p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Show error state if there was an error fetching details
+  if (error) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="w-[1280px] max-w-[100vw] rounded-0 md:rounded-tl-2xl p-0 pb-0 overflow-auto md:overflow-hidden md:max-w-[60vw] gap-0">
+          <SheetHeader className="border-b flex flex-col p-6">
+            <SheetTitle className="flex-row text-2xl text-black font-bold">
+              Group Details
+            </SheetTitle>
+            <SheetDescription>
+              Error loading {group.name} Group details
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center text-red-600">
+              <p className="mb-2">Failed to load group details</p>
+              <p className="text-sm text-muted-foreground">{error}</p>
             </div>
           </div>
         </SheetContent>
